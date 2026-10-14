@@ -1,0 +1,3730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>NORD // HABIT VAULT — AMOLED Habit Engine</title>
+  <style>
+    :root {
+      /* OnePlus Nord AMOLED Pure Black Palette */
+      --bg-amoled: #000000;
+      --bg-card: #0d1117;
+      --bg-card-elevated: #131922;
+      --bg-glass: rgba(13, 17, 23, 0.88);
+      --border-subtle: #1e2633;
+      --border-focus: #2d384a;
+
+      /* High-Contrast Neon Accents */
+      --neon-emerald: #00e676;
+      --neon-emerald-dim: rgba(0, 230, 118, 0.14);
+      --neon-emerald-glow: rgba(0, 230, 118, 0.35);
+
+      --neon-crimson: #ff1744;
+      --neon-crimson-dim: rgba(255, 23, 68, 0.16);
+      --neon-crimson-glow: rgba(255, 23, 68, 0.4);
+
+      --neon-cyan: #00e5ff;
+      --neon-cyan-dim: rgba(0, 229, 255, 0.14);
+      --neon-cyan-glow: rgba(0, 229, 255, 0.35);
+
+      --neon-amber: #ff9100;
+      --neon-amber-dim: rgba(255, 145, 0, 0.15);
+
+      --neon-purple: #b388ff;
+      --neon-purple-dim: rgba(179, 136, 255, 0.14);
+
+      /* Typography Colors */
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --text-muted: #586069;
+
+      /* Safe Area & Layout Constants */
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --nav-height: 70px;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --radius-pill: 9999px;
+      --transition-fast: 140ms cubic-bezier(0.22, 1, 0.36, 1);
+      --transition-smooth: 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    input, textarea, select {
+      user-select: text;
+      font-family: inherit;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background-color: var(--bg-amoled);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* App Container optimized for 20:9 tall smartphone ergonomics */
+    .app-shell {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background-color: var(--bg-amoled);
+      padding-top: calc(var(--safe-top) + 8px);
+      padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 28px);
+      position: relative;
+      border-left: 1px solid #0b0e14;
+      border-right: 1px solid #0b0e14;
+    }
+
+    /* Sticky Top Status & App Header */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(0, 0, 0, 0.86);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 10px 16px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+      box-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    .brand-name {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #ffffff, var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .status-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: transform var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .badge-pill:active {
+      transform: scale(0.95);
+    }
+
+    .badge-pill.persisted {
+      border-color: rgba(0, 230, 118, 0.4);
+      color: var(--neon-emerald);
+      background: var(--neon-emerald-dim);
+    }
+
+    .badge-pill.vault-linked {
+      border-color: rgba(0, 229, 255, 0.45);
+      color: var(--neon-cyan);
+      background: var(--neon-cyan-dim);
+    }
+
+    /* 7-Day Interactive Strip */
+    .week-strip-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .selected-date-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .week-nav-btns {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mini-btn {
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 4px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .mini-btn:active {
+      transform: scale(0.94);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    .mini-btn.today-highlight {
+      color: var(--neon-cyan);
+      border-color: rgba(0, 229, 255, 0.35);
+      background: var(--neon-cyan-dim);
+    }
+
+    .week-strip {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .day-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 7px 2px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      position: relative;
+      transition: all var(--transition-fast);
+    }
+
+    .day-pill:active {
+      transform: scale(0.93);
+    }
+
+    .day-pill .dow {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      letter-spacing: 0.03em;
+    }
+
+    .day-pill .dom {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .day-pill .day-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border-focus);
+      margin-top: 2px;
+    }
+
+    .day-pill.is-today {
+      border-color: rgba(0, 229, 255, 0.45);
+    }
+
+    .day-pill.is-selected {
+      background: #111b27;
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.22);
+    }
+
+    .day-pill.is-selected .dow,
+    .day-pill.is-selected .dom {
+      color: var(--neon-cyan);
+    }
+
+    .day-pill.status-success .day-dot {
+      background: var(--neon-emerald);
+      box-shadow: 0 0 6px var(--neon-emerald);
+    }
+
+    .day-pill.status-fail .day-dot {
+      background: var(--neon-crimson);
+      box-shadow: 0 0 6px var(--neon-crimson);
+    }
+
+    .day-pill.status-partial .day-dot {
+      background: var(--neon-amber);
+      box-shadow: 0 0 6px var(--neon-amber);
+    }
+
+    /* Main Content Padding */
+    .view-section {
+      display: none;
+      padding: 14px 14px 20px;
+      animation: fadeIn 180ms ease-out;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Collective Overview Header Card */
+    .hero-overview-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-top-grid {
+      display: grid;
+      grid-template-columns: 108px 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .hero-ring-wrap {
+      position: relative;
+      width: 108px;
+      height: 108px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .hero-score-val {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text-primary);
+      letter-spacing: -0.03em;
+    }
+
+    .hero-score-sub {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      letter-spacing: 0.05em;
+    }
+
+    .hero-stats-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .hero-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .kpi-mini {
+      background: var(--bg-amoled);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 7px 8px;
+      text-align: center;
+    }
+
+    .kpi-mini .val {
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .kpi-mini .lbl {
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .sparkline-box {
+      background: var(--bg-amoled);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 6px 8px 4px;
+    }
+
+    .sparkline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    /* Category Filter Pills */
+    .category-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 2px 2px 12px;
+      scrollbar-width: none;
+    }
+
+    .category-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cat-pill {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .cat-pill:active {
+      transform: scale(0.95);
+    }
+
+    .cat-pill.active {
+      background: var(--neon-cyan-dim);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+    }
+
+    /* Individual Habit Cards */
+    .habits-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .habit-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 15px;
+      transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .habit-card.state-success {
+      border-color: rgba(0, 230, 118, 0.5);
+      box-shadow: 0 0 18px rgba(0, 230, 118, 0.08);
+    }
+
+    .habit-card.state-fail {
+      border-color: var(--neon-crimson);
+      background: linear-gradient(180deg, rgba(255, 23, 68, 0.09) 0%, var(--bg-card) 100%);
+      box-shadow: 0 0 20px rgba(255, 23, 68, 0.18);
+    }
+
+    .habit-card.state-partial {
+      border-color: rgba(255, 145, 0, 0.45);
+    }
+
+    .habit-card.state-skip {
+      border-color: rgba(0, 229, 255, 0.35);
+      opacity: 0.9;
+    }
+
+    .habit-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .habit-identity {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .habit-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: var(--bg-amoled);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+      flex-shrink: 0;
+    }
+
+    .habit-title-wrap {
+      min-width: 0;
+    }
+
+    .habit-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .habit-meta-tags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+      margin-top: 3px;
+    }
+
+    .meta-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: var(--bg-amoled);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .meta-tag.type-floor {
+      color: var(--neon-emerald);
+      border-color: rgba(0, 230, 118, 0.3);
+    }
+
+    .meta-tag.type-ceiling {
+      color: var(--neon-amber);
+      border-color: rgba(255, 145, 0, 0.35);
+    }
+
+    .meta-tag.type-boolean {
+      color: var(--neon-purple);
+      border-color: rgba(179, 136, 255, 0.35);
+    }
+
+    .habit-badges-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .streak-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      background: var(--neon-cyan-dim);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: var(--neon-cyan);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .winrate-sub {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    /* Alert Banner for Ceiling Breach or Explicit Failure */
+    .crimson-fail-banner {
+      background: var(--neon-crimson-dim);
+      border: 1px solid var(--neon-crimson);
+      color: #ff6e89;
+      padding: 7px 10px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    /* Progress Bar */
+    .habit-progress-wrap {
+      margin-bottom: 12px;
+    }
+
+    .habit-progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: var(--text-secondary);
+    }
+
+    .habit-progress-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-amoled);
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .habit-progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: var(--radius-pill);
+      transition: width var(--transition-smooth), background-color var(--transition-smooth);
+    }
+
+    /* Controls for Numeric Floor & Ceiling Habits */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .stepper-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-amoled);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 4px;
+      flex: 1;
+    }
+
+    .stepper-btn {
+      width: 40px;
+      height: 38px;
+      border-radius: 9px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card-elevated);
+      color: var(--text-primary);
+      font-size: 19px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .stepper-btn:active {
+      transform: scale(0.92);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    .numeric-input-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .direct-num-input {
+      width: 64px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 16px;
+      font-weight: 800;
+      text-align: center;
+      padding: 4px 2px;
+    }
+
+    .direct-num-input:focus {
+      outline: none;
+      border-color: var(--neon-cyan);
+      background: var(--bg-card);
+    }
+
+    .quick-state-btns {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-btn {
+      height: 44px;
+      padding: 0 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-amoled);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .action-btn:active {
+      transform: scale(0.94);
+    }
+
+    .action-btn.btn-success.is-active {
+      background: var(--neon-emerald-dim);
+      border-color: var(--neon-emerald);
+      color: var(--neon-emerald);
+      box-shadow: 0 0 12px rgba(0, 230, 118, 0.25);
+    }
+
+    .action-btn.btn-fail.is-active {
+      background: var(--neon-crimson-dim);
+      border-color: var(--neon-crimson);
+      color: var(--neon-crimson);
+      box-shadow: 0 0 12px rgba(255, 23, 68, 0.3);
+    }
+
+    .action-btn.btn-skip.is-active {
+      background: var(--neon-cyan-dim);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    /* Tri-State Boolean Row */
+    .tri-state-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1.2fr 0.9fr;
+      gap: 8px;
+    }
+
+    /* Card Footer: Reflection Note & Deep Dive Link */
+    .card-footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px solid #161d27;
+      gap: 8px;
+    }
+
+    .note-trigger-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      text-align: left;
+      max-width: 68%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .note-trigger-btn.has-note {
+      color: var(--neon-amber);
+    }
+
+    .deep-dive-btn {
+      background: transparent;
+      border: none;
+      color: var(--neon-cyan);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    /* Analytics View Components */
+    .section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .section-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    /* Monthly Calendar Heatmap */
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin-bottom: 6px;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .cal-cell {
+      aspect-ratio: 1;
+      border-radius: 9px;
+      background: var(--bg-amoled);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      position: relative;
+      cursor: pointer;
+      transition: transform var(--transition-fast);
+    }
+
+    .cal-cell:active {
+      transform: scale(0.92);
+    }
+
+    .cal-cell.empty-pad {
+      background: transparent;
+      border-color: transparent;
+      pointer-events: none;
+    }
+
+    .cal-cell.cell-success {
+      background: rgba(0, 230, 118, 0.22);
+      border-color: var(--neon-emerald);
+      color: #ffffff;
+    }
+
+    .cal-cell.cell-fail {
+      background: rgba(255, 23, 68, 0.26);
+      border-color: var(--neon-crimson);
+      color: #ffffff;
+    }
+
+    .cal-cell.cell-partial {
+      background: rgba(255, 145, 0, 0.22);
+      border-color: var(--neon-amber);
+      color: #ffffff;
+    }
+
+    .cal-cell.cell-skip {
+      background: rgba(0, 229, 255, 0.14);
+      border-color: rgba(0, 229, 255, 0.45);
+      color: var(--neon-cyan);
+    }
+
+    .cal-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    /* 365-Day Annual Matrix */
+    .matrix-scroll-wrap {
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-focus) var(--bg-amoled);
+    }
+
+    .annual-matrix-grid {
+      display: grid;
+      grid-template-rows: repeat(7, 11px);
+      grid-auto-flow: column;
+      grid-auto-columns: 11px;
+      gap: 3px;
+      width: max-content;
+    }
+
+    .matrix-sq {
+      width: 11px;
+      height: 11px;
+      border-radius: 2.5px;
+      background: #121720;
+      border: 1px solid #1b2230;
+      cursor: pointer;
+    }
+
+    .matrix-sq.lvl-success {
+      background: var(--neon-emerald);
+      border-color: #00ff84;
+    }
+
+    .matrix-sq.lvl-partial {
+      background: var(--neon-amber);
+      border-color: #ffab40;
+    }
+
+    .matrix-sq.lvl-fail {
+      background: var(--neon-crimson);
+      border-color: #ff5252;
+    }
+
+    .matrix-sq.lvl-skip {
+      background: #1a3a44;
+      border-color: var(--neon-cyan);
+    }
+
+    /* 6-Metric Bento Grid */
+    .metrics-bento {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .bento-box {
+      background: var(--bg-amoled);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .bento-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .bento-value {
+      font-size: 21px;
+      font-weight: 900;
+      color: var(--text-primary);
+    }
+
+    .bento-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Vault & Direct File Sync Cards */
+    .vault-status-banner {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(0, 230, 118, 0.08));
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .vault-btn-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .vault-action-btn {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-amoled);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .vault-action-btn:active {
+      transform: scale(0.98);
+    }
+
+    .vault-action-btn.primary-emerald {
+      background: var(--neon-emerald-dim);
+      border-color: var(--neon-emerald);
+      color: var(--neon-emerald);
+    }
+
+    .vault-action-btn.primary-cyan {
+      background: var(--neon-cyan-dim);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    .vault-action-btn.danger-crimson {
+      background: var(--neon-crimson-dim);
+      border-color: rgba(255, 23, 68, 0.5);
+      color: var(--neon-crimson);
+    }
+
+    /* Bottom Thumb-Friendly Ergonomic Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: calc(var(--nav-height) + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom);
+      background: rgba(6, 9, 14, 0.94);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-top: 1px solid var(--border-subtle);
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1.15fr;
+      align-items: center;
+      padding-left: 10px;
+      padding-right: 10px;
+      z-index: 50;
+    }
+
+    .nav-item {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      height: 54px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .nav-item.active {
+      color: var(--neon-cyan);
+    }
+
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .fab-add-btn {
+      height: 46px;
+      border-radius: 14px;
+      border: 1px solid var(--neon-emerald);
+      background: linear-gradient(135deg, rgba(0, 230, 118, 0.25), rgba(0, 229, 255, 0.2));
+      color: var(--neon-emerald);
+      font-size: 13px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(0, 230, 118, 0.22);
+      transition: transform var(--transition-fast);
+    }
+
+    .fab-add-btn:active {
+      transform: scale(0.94);
+    }
+
+    /* Modals & Bottom Sheets */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+      animation: fadeBackdrop 160ms ease-out;
+    }
+
+    @keyframes fadeBackdrop {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 480px;
+      max-height: 91vh;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-focus);
+      border-radius: 24px 24px 0 0;
+      padding: 18px 16px calc(24px + var(--safe-bottom));
+      overflow-y: auto;
+      animation: slideUp 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .sheet-handle {
+      width: 42px;
+      height: 4px;
+      background: var(--border-focus);
+      border-radius: 99px;
+      margin: 0 auto 14px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .close-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-amoled);
+      color: var(--text-secondary);
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Form Controls */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-amoled);
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--neon-cyan);
+    }
+
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+    }
+
+    .emoji-opt {
+      height: 38px;
+      border-radius: 9px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-amoled);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .emoji-opt.selected {
+      border-color: var(--neon-cyan);
+      background: var(--neon-cyan-dim);
+    }
+
+    .archetype-selector {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .archetype-card {
+      padding: 11px 13px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-amoled);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .archetype-card.selected {
+      border-color: var(--neon-cyan);
+      background: var(--neon-cyan-dim);
+    }
+
+    .archetype-card .arch-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .archetype-card .arch-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* Non-blocking Toast Notification */
+    .toast-container {
+      position: fixed;
+      top: calc(var(--safe-top) + 14px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      width: calc(100% - 32px);
+      max-width: 440px;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast-msg {
+      background: rgba(13, 17, 23, 0.96);
+      border: 1px solid var(--neon-cyan);
+      color: var(--text-primary);
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: fadeIn 160ms ease-out;
+    }
+
+    .toast-msg.toast-success { border-color: var(--neon-emerald); color: var(--neon-emerald); }
+    .toast-msg.toast-fail { border-color: var(--neon-crimson); color: #ff6e89; }
+
+    /* Notes Log List */
+    .notes-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .note-entry {
+      background: var(--bg-amoled);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--neon-crimson);
+      border-radius: 10px;
+      padding: 9px 11px;
+    }
+
+    .note-entry.note-is-success {
+      border-left-color: var(--neon-emerald);
+    }
+
+    .note-entry-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 3px;
+    }
+
+    .note-entry-body {
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="app-shell">
+    <!-- Sticky Header & 7-Day Interactive Strip -->
+    <header class="top-bar">
+      <div class="brand-row">
+        <div class="brand-title">
+          <span class="brand-dot"></span>
+          <span class="brand-name">NORD // VAULT</span>
+        </div>
+        <div class="status-badges">
+          <button class="badge-pill" id="persistBadge" title="IndexedDB Storage Lock Status">
+            <span id="persistDot">●</span>
+            <span id="persistText">DB Lock...</span>
+          </button>
+          <button class="badge-pill" id="vaultQuickBadge" title="Direct File Sync Status">
+            <span>💾</span>
+            <span id="vaultBadgeText">Unlinked</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 7-Day Interactive Strip -->
+      <div class="week-strip-header">
+        <div class="selected-date-label" id="selectedDateLabel">Today</div>
+        <div class="week-nav-btns">
+          <button class="mini-btn" id="prevWeekBtn" aria-label="Previous Week">◀ Wk</button>
+          <button class="mini-btn today-highlight" id="jumpTodayBtn">Today</button>
+          <button class="mini-btn" id="nextWeekBtn" aria-label="Next Week">Wk ▶</button>
+        </div>
+      </div>
+      <div class="week-strip" id="weekStripContainer"></div>
+    </header>
+
+    <!-- VIEW 1: COLLECTIVE DASHBOARD & HABIT CARDS -->
+    <main class="view-section active" id="viewDashboard">
+      <!-- Collective Overview Header -->
+      <section class="hero-overview-card">
+        <div class="hero-top-grid">
+          <!-- Pure SVG Hero Ring -->
+          <div class="hero-ring-wrap">
+            <svg width="108" height="108" viewBox="0 0 108 108">
+              <circle cx="54" cy="54" r="44" fill="none" stroke="#161d27" stroke-width="10" />
+              <circle id="heroRingArc" cx="54" cy="54" r="44" fill="none" stroke="#00e676" stroke-width="10"
+                stroke-linecap="round" stroke-dasharray="276.46" stroke-dashoffset="276.46"
+                transform="rotate(-90 54 54)" style="transition: stroke-dashoffset 380ms ease, stroke 280ms ease;" />
+            </svg>
+            <div class="hero-ring-center">
+              <div class="hero-score-val" id="heroScoreVal">0%</div>
+              <div class="hero-score-sub">Daily Score</div>
+            </div>
+          </div>
+
+          <!-- KPIs + 14-Day Trend Sparkline -->
+          <div class="hero-stats-col">
+            <div class="hero-kpis">
+              <div class="kpi-mini">
+                <div class="val" style="color: var(--neon-emerald);" id="kpiDoneCount">0</div>
+                <div class="lbl">Success</div>
+              </div>
+              <div class="kpi-mini">
+                <div class="val" style="color: var(--neon-crimson);" id="kpiFailCount">0</div>
+                <div class="lbl">Failed</div>
+              </div>
+              <div class="kpi-mini">
+                <div class="val" style="color: var(--neon-cyan);" id="kpiPendingCount">0</div>
+                <div class="lbl">Open / Skip</div>
+              </div>
+            </div>
+
+            <div class="sparkline-box">
+              <div class="sparkline-header">
+                <span>14-Day Collective Trend</span>
+                <span id="sparklineAvgLabel" style="color: var(--neon-cyan);">0% avg</span>
+              </div>
+              <div id="collectiveSparklineWrap" style="width: 100%; height: 38px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Category Filtering Pills -->
+      <div class="category-bar" id="categoryFilterBar">
+        <button class="cat-pill active" data-cat="All">All Habits</button>
+        <button class="cat-pill" data-cat="Health">⚡ Health</button>
+        <button class="cat-pill" data-cat="Productivity">🚀 Productivity</button>
+        <button class="cat-pill" data-cat="Mindfulness">🧘 Mindfulness</button>
+        <button class="cat-pill" data-cat="Bad Habits">🛡️ Bad Habits</button>
+      </div>
+
+      <!-- Individual Habit Cards Container -->
+      <div class="habits-list" id="habitsListContainer"></div>
+    </main>
+
+    <!-- VIEW 2: MULTI-HORIZON ANALYTICS (MONTHLY & 365-DAY) -->
+    <section class="view-section" id="viewAnalytics">
+      <!-- Habit Filter Selector for Analytics -->
+      <div class="section-card">
+        <div class="section-title-row">
+          <div class="section-title">📊 Analytics Scope</div>
+          <select id="analyticsScopeSelect" class="form-select" style="width: auto; padding: 6px 12px; font-size: 13px;">
+            <option value="ALL">All Habits (Collective)</option>
+          </select>
+        </div>
+
+        <!-- 6 Comprehensive Metrics Bento -->
+        <div class="metrics-bento" id="analyticsMetricsBento"></div>
+      </div>
+
+      <!-- Monthly Calendar Heatmap -->
+      <div class="section-card">
+        <div class="section-title-row">
+          <div class="section-title">🗓️ Monthly Heatmap</div>
+          <div class="week-nav-btns">
+            <button class="mini-btn" id="calPrevMonthBtn">◀</button>
+            <span id="calMonthTitle" style="font-size: 13px; font-weight: 800; min-width: 96px; text-align: center;"></span>
+            <button class="mini-btn" id="calNextMonthBtn">▶</button>
+          </div>
+        </div>
+        <div class="cal-weekdays">
+          <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+        </div>
+        <div class="cal-grid" id="monthlyHeatmapGrid"></div>
+        <div class="cal-legend">
+          <span class="legend-item"><i class="legend-swatch" style="background: var(--neon-emerald);"></i>Success</span>
+          <span class="legend-item"><i class="legend-swatch" style="background: var(--neon-crimson);"></i>Explicit Fail</span>
+          <span class="legend-item"><i class="legend-swatch" style="background: var(--neon-amber);"></i>Partial / Warning</span>
+          <span class="legend-item"><i class="legend-swatch" style="background: var(--neon-cyan);"></i>Grace / Skip</span>
+        </div>
+      </div>
+
+      <!-- 365-Day Annual Matrix -->
+      <div class="section-card">
+        <div class="section-title-row">
+          <div class="section-title">🟩 365-Day Annual Matrix</div>
+          <span id="matrixTapInfo" style="font-size: 11px; color: var(--neon-cyan); font-weight: 700;">Tap cell to inspect</span>
+        </div>
+        <div class="matrix-scroll-wrap" id="annualMatrixScroll">
+          <div class="annual-matrix-grid" id="annualMatrixGrid"></div>
+        </div>
+        <div class="cal-legend" style="margin-top: 10px;">
+          <span class="legend-item"><i class="legend-swatch" style="background: #121720; border: 1px solid #2b3547;"></i>No Log</span>
+          <span class="legend-item"><i class="legend-swatch" style="background: var(--neon-emerald);"></i>Success</span>
+          <span class="legend-item"><i class="legend-swatch" style="background: var(--neon-amber);"></i>Partial</span>
+          <span class="legend-item"><i class="legend-swatch" style="background: var(--neon-crimson);"></i>Failed</span>
+          <span class="legend-item"><i class="legend-swatch" style="background: #1a3a44; border: 1px solid var(--neon-cyan);"></i>Grace</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: VAULT & DIRECT DISK FILE SYNC -->
+    <section class="view-section" id="viewVault">
+      <div class="vault-status-banner">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:14px; font-weight:900; color:var(--neon-cyan);">SINGLE-FILE VAULT ENGINE</span>
+          <span id="fsSupportTag" class="meta-tag">Checking API...</span>
+        </div>
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">
+          Prevents Android cache data loss and eliminates duplicate <code>my_habits (1).json</code> downloads by overwriting a single linked file handle stored in IndexedDB.
+        </p>
+        <div style="font-size:12px; font-weight:700; color:var(--text-primary); background:var(--bg-amoled); padding:9px 12px; border-radius:10px; border:1px solid var(--border-subtle);">
+          <div>📄 Linked File: <span id="vaultLinkedFileName" style="color:var(--neon-emerald);">None linked yet</span></div>
+          <div style="margin-top:3px;">🕒 Last Direct Sync: <span id="vaultLastSyncTime" style="color:var(--text-secondary);">Never</span></div>
+        </div>
+      </div>
+
+      <!-- Direct File System Access API Controls -->
+      <div class="section-card">
+        <div class="section-title-row">
+          <div class="section-title">⚡ Direct Disk Sync (Zero Duplicates)</div>
+        </div>
+        <div class="vault-btn-stack">
+          <button class="vault-action-btn primary-cyan" id="btnLinkNewVault">
+            <span>🔗 Create / Link Vault File (my_habits.json)</span>
+            <span>NEW</span>
+          </button>
+          <button class="vault-action-btn" id="btnOpenExistingVault">
+            <span>📂 Link Existing Vault JSON File</span>
+            <span>OPEN</span>
+          </button>
+          <button class="vault-action-btn primary-emerald" id="btnSyncOverwriteVault">
+            <span>💾 Sync / Overwrite Linked File Now</span>
+            <span>WRITE</span>
+          </button>
+          <button class="vault-action-btn" id="btnPullFromVault">
+            <span>🔄 Reload Data From Linked File</span>
+            <span>READ</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Universal Fallback Export / Import -->
+      <div class="section-card">
+        <div class="section-title-row">
+          <div class="section-title">📦 Universal JSON Backup & Restore</div>
+        </div>
+        <div class="vault-btn-stack">
+          <button class="vault-action-btn" id="btnFallbackDownload">
+            <span>⬇️ Download Snapshot JSON</span>
+            <span>EXPORT</span>
+          </button>
+          <label class="vault-action-btn" style="cursor:pointer;">
+            <span>⬆️ Import Snapshot JSON File</span>
+            <span>IMPORT</span>
+            <input type="file" id="fallbackFileInput" accept=".json,application/json" style="display:none;" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Hardware & Database Diagnostics -->
+      <div class="section-card">
+        <div class="section-title-row">
+          <div class="section-title">📱 OnePlus Nord Hardware & DB Controls</div>
+        </div>
+        <div class="vault-btn-stack">
+          <button class="vault-action-btn" id="btnRequestPersistLock">
+            <span>🔒 Request Android Storage Persistence Lock</span>
+            <span id="persistStatusLabel">CHECK</span>
+          </button>
+          <button class="vault-action-btn" id="btnTestHaptics">
+            <span>📳 Test OnePlus Haptic Motor (Light & Alert)</span>
+            <span>PULSE</span>
+          </button>
+          <button class="vault-action-btn" id="btnResetSampleData">
+            <span>🌱 Reload Demo Habits & 90-Day History</span>
+            <span>DEMO</span>
+          </button>
+          <button class="vault-action-btn danger-crimson" id="btnWipeAllData">
+            <span>🗑️ Wipe All Habits & Logs</span>
+            <span>CLEAR</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Thumb-Reachable Navigation Bar -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-target="viewDashboard">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Habits</span>
+      </button>
+      <button class="nav-item" data-target="viewAnalytics">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Analytics</span>
+      </button>
+      <button class="nav-item" data-target="viewVault">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        <span>Vault Sync</span>
+      </button>
+      <button class="fab-add-btn" id="btnOpenAddHabit">
+        <span style="font-size:18px;">＋</span>
+        <span>New Habit</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- MODAL 1: ADD / EDIT HABIT -->
+  <div class="modal-backdrop" id="habitFormModal">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title" id="habitFormTitle">Create New Habit</div>
+        <button class="close-btn" id="closeHabitFormBtn">✕</button>
+      </div>
+      <form id="habitForm">
+        <input type="hidden" id="editHabitId" value="" />
+
+        <div class="form-group">
+          <label class="form-label">Habit Name</label>
+          <input type="text" id="habitNameInput" class="form-input" placeholder="e.g., Hydrate 8 Glasses, Zero Cigarettes" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Select Icon</label>
+          <div class="emoji-grid" id="emojiPickerGrid"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select id="habitCategoryInput" class="form-select">
+            <option value="Health">Health</option>
+            <option value="Productivity">Productivity</option>
+            <option value="Mindfulness">Mindfulness</option>
+            <option value="Bad Habits">Bad Habits</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Target Archetype & Evaluation Rule</label>
+          <div class="archetype-selector" id="archetypeSelector">
+            <div class="archetype-card selected" data-type="floor">
+              <div class="arch-title" style="color:var(--neon-emerald);">1. Minimum Target ("At least X")</div>
+              <div class="arch-desc">Value ≥ Target = SUCCESS. Includes [+] / [-] steppers & direct input.</div>
+            </div>
+            <div class="archetype-card" data-type="ceiling">
+              <div class="arch-title" style="color:var(--neon-amber);">2. Maximum Ceiling ("At most X")</div>
+              <div class="arch-desc">Value ≤ Target = SUCCESS. Value &gt; Target = IMMEDIATE CRIMSON FAIL.</div>
+            </div>
+            <div class="archetype-card" data-type="boolean">
+              <div class="arch-title" style="color:var(--neon-purple);">3. Tri-State Boolean (Yes / Explicit Fail / Grace)</div>
+              <div class="arch-desc">Log Done, Explicit Relapse/Fail (with reflection notes), or Grace Day.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="numericTargetFields" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+          <div class="form-group">
+            <label class="form-label" id="targetValLabel">Target Min</label>
+            <input type="number" id="habitTargetInput" class="form-input" value="8" min="0" step="any" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Unit</label>
+            <input type="text" id="habitUnitInput" class="form-input" value="glasses" placeholder="mins, cups" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Step (+/-)</label>
+            <input type="number" id="habitStepInput" class="form-input" value="1" min="0.1" step="any" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Monthly Streak Freeze / Grace Allowance</label>
+          <input type="number" id="habitGraceInput" class="form-input" value="3" min="0" max="15" />
+        </div>
+
+        <button type="submit" class="vault-action-btn primary-emerald" style="justify-content:center; margin-top:8px;">
+          <span>💾 Save Habit Configuration</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: INDIVIDUAL HABIT DEEP-DIVE ANALYTICS MODAL -->
+  <div class="modal-backdrop" id="deepDiveModal">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title" id="deepDiveTitle">Habit Deep Dive</div>
+        <button class="close-btn" id="closeDeepDiveBtn">✕</button>
+      </div>
+
+      <div id="deepDiveSubtitle" style="font-size:12px; color:var(--text-secondary); margin-bottom:14px;"></div>
+
+      <!-- 6 Comprehensive Habit Metrics -->
+      <div class="metrics-bento" id="deepDiveMetricsGrid" style="margin-bottom:14px;"></div>
+
+      <!-- Pure SVG Donut + Ratio Breakdown -->
+      <div class="section-card" style="padding:14px;">
+        <div class="section-title" style="margin-bottom:10px;">🎯 All-Time Outcome Distribution</div>
+        <div style="display:grid; grid-template-columns: 110px 1fr; gap:14px; align-items:center;">
+          <div id="deepDiveDonutWrap" style="width:110px; height:110px;"></div>
+          <div id="deepDiveRatioBars" style="display:flex; flex-direction:column; gap:7px;"></div>
+        </div>
+      </div>
+
+      <!-- Individual Monthly Calendar Heatmap -->
+      <div class="section-card" style="padding:14px;">
+        <div class="section-title-row">
+          <div class="section-title">🗓️ Habit Monthly Heatmap</div>
+          <div class="week-nav-btns">
+            <button class="mini-btn" id="ddPrevMonthBtn">◀</button>
+            <span id="ddMonthLabel" style="font-size:12px; font-weight:800;"></span>
+            <button class="mini-btn" id="ddNextMonthBtn">▶</button>
+          </div>
+        </div>
+        <div class="cal-weekdays">
+          <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+        </div>
+        <div class="cal-grid" id="ddMonthlyGrid"></div>
+      </div>
+
+      <!-- Individual 365-Day Matrix -->
+      <div class="section-card" style="padding:14px;">
+        <div class="section-title-row">
+          <div class="section-title">🟩 365-Day Consistency Matrix</div>
+        </div>
+        <div class="matrix-scroll-wrap" id="ddMatrixScroll">
+          <div class="annual-matrix-grid" id="ddAnnualMatrix"></div>
+        </div>
+      </div>
+
+      <!-- Failure Reflections & Notes Log -->
+      <div class="section-card" style="padding:14px;">
+        <div class="section-title-row">
+          <div class="section-title">📝 Failure Reflections & Notes Log</div>
+        </div>
+        <div class="notes-feed" id="ddNotesFeed"></div>
+      </div>
+
+      <!-- Edit / Delete Actions -->
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+        <button class="vault-action-btn primary-cyan" id="btnEditCurrentHabit" style="justify-content:center;">
+          <span>✏️ Edit Habit</span>
+        </button>
+        <button class="vault-action-btn danger-crimson" id="btnDeleteCurrentHabit" style="justify-content:center;">
+          <span>🗑️ Delete Habit</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: REFLECTION NOTE & EXPLICIT FAILURE DIALOG -->
+  <div class="modal-backdrop" id="noteModal">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title" id="noteModalTitle">Reflection / Failure Log</div>
+        <button class="close-btn" id="closeNoteModalBtn">✕</button>
+      </div>
+      <p id="noteModalSub" style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;"></p>
+      <div class="form-group">
+        <label class="form-label">Reflection Note (Trigger, Context, or Lesson)</label>
+        <textarea id="noteTextarea" class="form-textarea" rows="3" placeholder="e.g., Late night stress trigger, skipped prep, or proud milestone..."></textarea>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;" id="quickReflectionChips">
+        <button type="button" class="mini-btn" data-chip="High stress / fatigue">High stress / fatigue</button>
+        <button type="button" class="mini-btn" data-chip="Social event / travel">Social event / travel</button>
+        <button type="button" class="mini-btn" data-chip="Late night screen scrolling">Late night scrolling</button>
+        <button type="button" class="mini-btn" data-chip="Lost track of time">Lost track of time</button>
+      </div>
+      <button type="button" class="vault-action-btn primary-emerald" id="saveNoteBtn" style="justify-content:center;">
+        <span>💾 Save Reflection Note</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 4: CUSTOM CONFIRMATION SHEET (NO NATIVE CONFIRM/ALERT) -->
+  <div class="modal-backdrop" id="confirmModal">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title" id="confirmModalTitle">Confirm Action</div>
+        <button class="close-btn" id="closeConfirmModalBtn">✕</button>
+      </div>
+      <p id="confirmModalText" style="font-size:14px; color:var(--text-secondary); margin-bottom:18px;"></p>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <button class="vault-action-btn" id="confirmCancelBtn" style="justify-content:center;">Cancel</button>
+        <button class="vault-action-btn danger-crimson" id="confirmProceedBtn" style="justify-content:center;">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /********************************************************************
+     * ONEPLUS NORD HABIT VAULT — CORE ENGINE, INDEXEDDB & ANALYTICS
+     ********************************************************************/
+
+    const DB_NAME = 'NordHabitVaultDB';
+    const DB_VERSION = 1;
+    const EMOJI_OPTIONS = ['💧', '📖', '🏋️', '🧘', '🚭', '📵', '☕', '🥗', '💤', '💻', '🏃', '🧠', '💊', '🎯', '🧹', '🎸'];
+
+    // Application State
+    const state = {
+      db: null,
+      habits: [],
+      logsMap: new Map(), // key: `${habitId}_${dateStr}` -> log object
+      selectedDate: formatDateISO(new Date()),
+      weekAnchorDate: getMonday(new Date()),
+      activeCategory: 'All',
+      analyticsScope: 'ALL',
+      calMonthDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      ddHabitId: null,
+      ddMonthDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      noteContext: null, // { habitId, dateStr }
+      confirmCallback: null,
+      fileHandle: null,
+      linkedFileName: null,
+      lastSyncTime: null,
+      selectedEmoji: '💧',
+      selectedArchetype: 'floor'
+    };
+
+    /********************************************************************
+     * 1. DATE & HAPTIC UTILITIES
+     ********************************************************************/
+    function formatDateISO(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function parseDateISO(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function addDays(dateObj, days) {
+      const copy = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+      copy.setDate(copy.getDate() + days);
+      return copy;
+    }
+
+    function getMonday(dateObj) {
+      const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      d.setDate(diff);
+      return d;
+    }
+
+    function formatHumanDate(dateStr) {
+      const todayStr = formatDateISO(new Date());
+      const yesterdayStr = formatDateISO(addDays(new Date(), -1));
+      const d = parseDateISO(dateStr);
+      const formatted = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      if (dateStr === todayStr) return `Today • ${formatted}`;
+      if (dateStr === yesterdayStr) return `Yesterday • ${formatted}`;
+      return formatted;
+    }
+
+    function triggerHaptic(type = 'light') {
+      try {
+        if (navigator && typeof navigator.vibrate === 'function') {
+          if (type === 'fail') {
+            navigator.vibrate([20, 50, 20]);
+          } else {
+            navigator.vibrate([15]);
+          }
+        }
+      } catch (err) {
+        // Ignore on unsupported webviews
+      }
+    }
+
+    function showToast(message, variant = 'info') {
+      const container = document.getElementById('toastContainer');
+      const el = document.createElement('div');
+      el.className = `toast-msg ${variant === 'success' ? 'toast-success' : variant === 'fail' ? 'toast-fail' : ''}`;
+      el.innerHTML = `<span>${message}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 200ms ease';
+        setTimeout(() => el.remove(), 220);
+      }, 2400);
+    }
+
+    function openConfirmModal(title, message, onConfirm) {
+      document.getElementById('confirmModalTitle').textContent = title;
+      document.getElementById('confirmModalText').textContent = message;
+      state.confirmCallback = onConfirm;
+      document.getElementById('confirmModal').classList.add('open');
+    }
+
+    /********************************************************************
+     * 2. INDEXEDDB & ANDROID STORAGE PERSISTENCE
+     ********************************************************************/
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('habits')) {
+            db.createObjectStore('habits', { keyPath: 'id' });
+          }
+          if (!db.objectStoreNames.contains('logs')) {
+            const logStore = db.createObjectStore('logs', { keyPath: 'id' });
+            logStore.createIndex('by_habit', 'habitId', { unique: false });
+            logStore.createIndex('by_date', 'date', { unique: false });
+          }
+          if (!db.objectStoreNames.contains('meta')) {
+            db.createObjectStore('meta', { keyPath: 'key' });
+          }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    function dbGetAll(storeName) {
+      return new Promise((resolve, reject) => {
+        const tx = state.db.transaction(storeName, 'readonly');
+        const req = tx.objectStore(storeName).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function dbPut(storeName, value) {
+      return new Promise((resolve, reject) => {
+        const tx = state.db.transaction(storeName, 'readwrite');
+        const req = tx.objectStore(storeName).put(value);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function dbDelete(storeName, key) {
+      return new Promise((resolve, reject) => {
+        const tx = state.db.transaction(storeName, 'readwrite');
+        const req = tx.objectStore(storeName).delete(key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function dbClear(storeName) {
+      return new Promise((resolve, reject) => {
+        const tx = state.db.transaction(storeName, 'readwrite');
+        const req = tx.objectStore(storeName).clear();
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbGetMeta(key) {
+      return new Promise((resolve) => {
+        const tx = state.db.transaction('meta', 'readonly');
+        const req = tx.objectStore('meta').get(key);
+        req.onsuccess = () => resolve(req.result ? req.result.value : null);
+        req.onerror = () => resolve(null);
+      });
+    }
+
+    async function dbSetMeta(key, value) {
+      return dbPut('meta', { key, value });
+    }
+
+    async function initStoragePersistence() {
+      const badge = document.getElementById('persistBadge');
+      const text = document.getElementById('persistText');
+      const statusLbl = document.getElementById('persistStatusLabel');
+
+      try {
+        if (navigator.storage && navigator.storage.persist) {
+          let isPersisted = await navigator.storage.persisted();
+          if (!isPersisted) {
+            isPersisted = await navigator.storage.persist();
+          }
+          if (isPersisted) {
+            badge.classList.add('persisted');
+            text.textContent = 'DB Locked';
+            statusLbl.textContent = 'LOCKED';
+            return true;
+          } else {
+            badge.classList.remove('persisted');
+            text.textContent = 'IDB Active';
+            statusLbl.textContent = 'ACTIVE';
+            return false;
+          }
+        }
+      } catch (e) {
+        text.textContent = 'IDB Ready';
+      }
+      return false;
+    }
+
+    /********************************************************************
+     * 3. CORE HABIT ENGINE & TARGET EVALUATION LOGIC
+     ********************************************************************/
+    /*
+     * Returns strict evaluation status for a habit on a given date:
+     * - 'SUCCESS': Target met (Floor >= target, Ceiling <= target & logged, Boolean success)
+     * - 'FAIL': Explicit failure OR Ceiling breached (Value > target)
+     * - 'PARTIAL': Floor habit with 0 < Value < target (incomplete)
+     * - 'SKIP': Grace / Skip day logged
+     * - 'EMPTY': Not logged yet
+     */
+    function evaluateHabitDay(habit, log) {
+      if (!log) return { status: 'EMPTY', ratio: 0, label: 'Not Logged' };
+
+      if (log.explicitState === 'skip') {
+        return { status: 'SKIP', ratio: 1, label: '❄ Grace / Skip Day' };
+      }
+
+      if (log.explicitState === 'fail') {
+        return { status: 'FAIL', ratio: 1, label: '✕ Explicit Failure' };
+      }
+
+      if (habit.type === 'boolean') {
+        if (log.explicitState === 'success' || log.value >= 1) {
+          return { status: 'SUCCESS', ratio: 1, label: '✓ Completed' };
+        }
+        return { status: 'EMPTY', ratio: 0, label: 'Pending' };
+      }
+
+      if (habit.type === 'floor') {
+        const val = Number(log.value || 0);
+        const target = Math.max(0.0001, Number(habit.target || 1));
+        const ratio = Math.min(1, Math.max(0, val / target));
+
+        if (val >= habit.target) {
+          return { status: 'SUCCESS', ratio: 1, label: `✓ Goal Met (${val}/${habit.target} ${habit.unit})` };
+        }
+        if (val > 0) {
+          return { status: 'PARTIAL', ratio, label: `Incomplete (${val}/${habit.target} ${habit.unit})` };
+        }
+        return { status: 'EMPTY', ratio: 0, label: `0 / ${habit.target} ${habit.unit}` };
+      }
+
+      if (habit.type === 'ceiling') {
+        if (!log.logged && log.explicitState !== 'success') {
+          return { status: 'EMPTY', ratio: 0, label: `Max ${habit.target} ${habit.unit}` };
+        }
+        const val = Number(log.value || 0);
+        const target = Number(habit.target || 0);
+
+        if (val > target) {
+          return {
+            status: 'FAIL',
+            ratio: 1,
+            breached: true,
+            label: `🚨 CEILING BREACHED (${val} / max ${target} ${habit.unit})`
+          };
+        }
+        // Within limit -> SUCCESS!
+        const usageRatio = target > 0 ? Math.min(1, val / target) : 0;
+        return {
+          status: 'SUCCESS',
+          ratio: 1,
+          usageRatio,
+          nearCeiling: target > 0 && val === target,
+          label: `✓ Within Limit (${val} ≤ ${target} ${habit.unit})`
+        };
+      }
+
+      return { status: 'EMPTY', ratio: 0, label: 'Pending' };
+    }
+
+    // Calculate all 6 comprehensive habit metrics for a single habit
+    function computeHabitMetrics(habit) {
+      const today = new Date();
+      const todayStr = formatDateISO(today);
+
+      let totalSuccess = 0;
+      let totalFail = 0;
+      let totalPartial = 0;
+      let graceUsed = 0;
+      let graceThisMonth = 0;
+      const currentMonthPrefix = todayStr.slice(0, 7);
+
+      // Collect all dates from habit creation (or 365 days ago) to today
+      const startScan = addDays(today, -365);
+      let runningStreak = 0;
+      let bestStreak = 0;
+      let brokenStreaks = 0;
+
+      for (let i = 0; i <= 365; i++) {
+        const dStr = formatDateISO(addDays(startScan, i));
+        const log = state.logsMap.get(`${habit.id}_${dStr}`);
+        const evalRes = evaluateHabitDay(habit, log);
+
+        if (evalRes.status === 'SUCCESS') {
+          totalSuccess++;
+          runningStreak++;
+          if (runningStreak > bestStreak) bestStreak = runningStreak;
+        } else if (evalRes.status === 'SKIP') {
+          graceUsed++;
+          if (dStr.startsWith(currentMonthPrefix)) graceThisMonth++;
+          // Grace day preserves active streak without incrementing
+        } else if (evalRes.status === 'FAIL') {
+          totalFail++;
+          if (runningStreak > 0) brokenStreaks++;
+          runningStreak = 0;
+        } else if (evalRes.status === 'PARTIAL') {
+          totalPartial++;
+          if (dStr < todayStr) {
+            if (runningStreak > 0) brokenStreaks++;
+            runningStreak = 0;
+          }
+        } else {
+          // EMPTY day in the past breaks an active streak if the habit already had logs prior
+          if (dStr < todayStr && runningStreak > 0) {
+            brokenStreaks++;
+            runningStreak = 0;
+          }
+        }
+      }
+
+      // Compute current active streak backwards from Today (or Yesterday if Today is still Empty)
+      let currentStreak = 0;
+      for (let back = 0; back <= 365; back++) {
+        const dStr = formatDateISO(addDays(today, -back));
+        const log = state.logsMap.get(`${habit.id}_${dStr}`);
+        const evalRes = evaluateHabitDay(habit, log);
+        if (evalRes.status === 'SUCCESS') {
+          currentStreak++;
+        } else if (evalRes.status === 'SKIP') {
+          // Grace bridges the streak
+          continue;
+        } else if (back === 0 && (evalRes.status === 'EMPTY' || evalRes.status === 'PARTIAL')) {
+          // Today not finished yet, check yesterday
+          continue;
+        } else {
+          break;
+        }
+      }
+
+      const evaluatedTotal = totalSuccess + totalFail + totalPartial;
+      const winRate = evaluatedTotal > 0 ? ((totalSuccess / evaluatedTotal) * 100).toFixed(1) : '0.0';
+
+      return {
+        currentStreak,
+        bestStreak: Math.max(bestStreak, currentStreak),
+        totalSuccess,
+        totalFail,
+        totalPartial,
+        graceUsed,
+        graceThisMonth,
+        brokenStreaks,
+        winRate
+      };
+    }
+
+    // Evaluate collective status for a given date across all habits
+    function evaluateCollectiveDate(dateStr) {
+      if (state.habits.length === 0) {
+        return { score: 0, success: 0, fail: 0, partial: 0, skip: 0, empty: 0, status: 'EMPTY' };
+      }
+      let success = 0, fail = 0, partial = 0, skip = 0, empty = 0;
+      for (const h of state.habits) {
+        const log = state.logsMap.get(`${h.id}_${dateStr}`);
+        const res = evaluateHabitDay(h, log);
+        if (res.status === 'SUCCESS') success++;
+        else if (res.status === 'FAIL') fail++;
+        else if (res.status === 'PARTIAL') partial++;
+        else if (res.status === 'SKIP') skip++;
+        else empty++;
+      }
+      const activeTotal = Math.max(1, state.habits.length - skip);
+      const score = Math.round(((success + partial * 0.4) / activeTotal) * 100);
+
+      let status = 'EMPTY';
+      if (fail > 0 && success === 0) status = 'FAIL';
+      else if (success === state.habits.length || (success > 0 && success + skip === state.habits.length)) status = 'SUCCESS';
+      else if (fail > 0 || partial > 0 || success > 0) status = score >= 80 ? 'SUCCESS' : fail > 0 ? 'FAIL' : 'PARTIAL';
+      else if (skip > 0) status = 'SKIP';
+
+      return { score: Math.min(100, score), success, fail, partial, skip, empty, status };
+    }
+
+    /********************************************************************
+     * 4. SAMPLE DATA GENERATOR (PRE-POPULATED 90 DAYS OF RICH LOGS)
+     ********************************************************************/
+    async function seedDemoData() {
+      await dbClear('habits');
+      await dbClear('logs');
+
+      const now = Date.now();
+      const sampleHabits = [
+        {
+          id: 'hab_water',
+          name: 'Hydrate 8 Glasses',
+          icon: '💧',
+          category: 'Health',
+          type: 'floor',
+          target: 8,
+          unit: 'glasses',
+          step: 1,
+          graceAllowance: 3,
+          createdAt: now - 86400000 * 100,
+          order: 1
+        },
+        {
+          id: 'hab_read',
+          name: 'Deep Reading',
+          icon: '📖',
+          category: 'Productivity',
+          type: 'floor',
+          target: 30,
+          unit: 'mins',
+          step: 5,
+          graceAllowance: 4,
+          createdAt: now - 86400000 * 100,
+          order: 2
+        },
+        {
+          id: 'hab_smoke',
+          name: 'Zero Nicotine / Vaping',
+          icon: '🚭',
+          category: 'Bad Habits',
+          type: 'ceiling',
+          target: 0,
+          unit: 'puffs',
+          step: 1,
+          graceAllowance: 1,
+          createdAt: now - 86400000 * 100,
+          order: 3
+        },
+        {
+          id: 'hab_screen',
+          name: 'Late Night Doomscroll Limit',
+          icon: '📵',
+          category: 'Bad Habits',
+          type: 'ceiling',
+          target: 30,
+          unit: 'mins',
+          step: 5,
+          graceAllowance: 2,
+          createdAt: now - 86400000 * 100,
+          order: 4
+        },
+        {
+          id: 'hab_meditate',
+          name: 'Mindful Breathwork',
+          icon: '🧘',
+          category: 'Mindfulness',
+          type: 'boolean',
+          target: 1,
+          unit: 'session',
+          step: 1,
+          graceAllowance: 3,
+          createdAt: now - 86400000 * 100,
+          order: 5
+        },
+        {
+          id: 'hab_workout',
+          name: 'Strength & Mobility Training',
+          icon: '🏋️',
+          category: 'Health',
+          type: 'boolean',
+          target: 1,
+          unit: 'workout',
+          step: 1,
+          graceAllowance: 4,
+          createdAt: now - 86400000 * 100,
+          order: 6
+        }
+      ];
+
+      for (const h of sampleHabits) {
+        await dbPut('habits', h);
+      }
+
+      const today = new Date();
+      const failureReflections = [
+        'Stayed up past midnight answering messages.',
+        'Long commute & skipped evening routine.',
+        'High workload sprint; lost track of hydration.',
+        'Weekend social gathering trigger.',
+        'Revenge bedtime procrastination on phone.'
+      ];
+
+      // Generate 95 days of deterministic, realistic history
+      for (let back = 95; back >= 0; back--) {
+        const dStr = formatDateISO(addDays(today, -back));
+        for (let idx = 0; idx < sampleHabits.length; idx++) {
+          const h = sampleHabits[idx];
+          const hash = (back * 13 + idx * 7) % 29;
+          let log = null;
+
+          if (back === 0) {
+            // Today: show variety (some complete, one in-progress, one ready)
+            if (h.id === 'hab_water') {
+              log = { id: `${h.id}_${dStr}`, habitId: h.id, date: dStr, value: 6, logged: true, explicitState: 'auto', note: '' };
+            } else if (h.id === 'hab_read') {
+              log = { id: `${h.id}_${dStr}`, habitId: h.id, date: dStr, value: 35, logged: true, explicitState: 'auto', note: 'Finished 2 chapters before breakfast.' };
+            } else if (h.id === 'hab_smoke') {
+              log = { id: `${h.id}_${dStr}`, habitId: h.id, date: dStr, value: 0, logged: true, explicitState: 'success', note: '' };
+            } else if (h.id === 'hab_screen') {
+              log = { id: `${h.id}_${dStr}`, habitId: h.id, date: dStr, value: 15, logged: true, explicitState: 'auto', note: '' };
+            } else if (h.id === 'hab_meditate') {
+              log = { id: `${h.id}_${dStr}`, habitId: h.id, date: dStr, value: 1, logged: true, explicitState: 'success', note: '' };
+            }
+          } else {
+            // Historical days
+            if (hash === 0) {
+              // Explicit failure day with reflection note
+              const noteText = failureReflections[(back + idx) % failureReflections.length];
+              const failVal = h.type === 'ceiling' ? h.target + (h.step || 1) * 2 : h.type === 'floor' ? Math.floor(h.target * 0.3) : 0;
+              log = { id: `${h.id}_${dStr}`, habitId: h.id, date: dStr, value: failVal, logged: true, explicitState: 'fail', note: noteText };
+            } else if (hash === 4) {
+              // Grace / Skip day
+              log = { id: `${h.id}_${dStr}`, habitId: h.id, date: dStr, value: 0, logged: true, explicitState: 'skip', note: 'Rest / Travel recovery day' };
+            } else if (hash === 9 && h.type === 'floor') {
+              // Partial progress day
+              log = { id: `${h.id}_${dStr}`, habitId: h.id, date: dStr, value: Math.max(1, Math.floor(h.target * 0.65)), logged: true, explicitState: 'auto', note: '' };
+            } else {
+              // Success day
+              const val = h.type === 'floor' ? h.target + ((back % 3) * h.step) : h.type === 'ceiling' ? (h.target > 0 ? Math.floor(h.target * 0.5) : 0) : 1;
+              log = { id: `${h.id}_${dStr}`, habitId: h.id, date: dStr, value: val, logged: true, explicitState: 'success', note: '' };
+            }
+          }
+
+          if (log) {
+            log.updatedAt = Date.now();
+            await dbPut('logs', log);
+          }
+        }
+      }
+
+      await dbSetMeta('sampleSeeded', true);
+    }
+
+    /********************************************************************
+     * 5. DATA LOADING & MUTATION OPERATIONS
+     ********************************************************************/
+    async function loadAllDataFromDB() {
+      const habits = await dbGetAll('habits');
+      habits.sort((a, b) => (a.order || 0) - (b.order || 0));
+      state.habits = habits;
+
+      const logs = await dbGetAll('logs');
+      state.logsMap.clear();
+      for (const l of logs) {
+        state.logsMap.set(l.id, l);
+      }
+
+      state.fileHandle = await dbGetMeta('vaultFileHandle');
+      state.linkedFileName = await dbGetMeta('linkedFileName');
+      state.lastSyncTime = await dbGetMeta('lastSyncTime');
+      updateVaultUIStatus();
+    }
+
+    async function upsertHabitLog(habitId, dateStr, patch) {
+      const id = `${habitId}_${dateStr}`;
+      const existing = state.logsMap.get(id) || {
+        id,
+        habitId,
+        date: dateStr,
+        value: 0,
+        logged: false,
+        explicitState: 'auto',
+        note: ''
+      };
+      const updated = {
+        ...existing,
+        ...patch,
+        updatedAt: Date.now()
+      };
+      state.logsMap.set(id, updated);
+      await dbPut('logs', updated);
+      renderAll();
+    }
+
+    /********************************************************************
+     * 6. RENDERING: 7-DAY STRIP, HERO RING, SPARKLINE & HABIT CARDS
+     ********************************************************************/
+    function renderWeekStrip() {
+      const container = document.getElementById('weekStripContainer');
+      const label = document.getElementById('selectedDateLabel');
+      label.textContent = formatHumanDate(state.selectedDate);
+
+      const todayStr = formatDateISO(new Date());
+      const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      let html = '';
+
+      for (let i = 0; i < 7; i++) {
+        const dObj = addDays(state.weekAnchorDate, i);
+        const dStr = formatDateISO(dObj);
+        const evalDay = evaluateCollectiveDate(dStr);
+        const isSelected = dStr === state.selectedDate;
+        const isToday = dStr === todayStr;
+
+        let statusClass = '';
+        if (evalDay.status === 'SUCCESS') statusClass = 'status-success';
+        else if (evalDay.status === 'FAIL') statusClass = 'status-fail';
+        else if (evalDay.status === 'PARTIAL') statusClass = 'status-partial';
+
+        html += `
+          <div class="day-pill ${isSelected ? 'is-selected' : ''} ${isToday ? 'is-today' : ''} ${statusClass}" data-date="${dStr}">
+            <span class="dow">${dayNames[i]}</span>
+            <span class="dom">${dObj.getDate()}</span>
+            <span class="day-dot"></span>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+
+      container.querySelectorAll('.day-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          triggerHaptic('light');
+          state.selectedDate = pill.getAttribute('data-date');
+          renderAll();
+        });
+      });
+    }
+
+    function renderCollectiveHero() {
+      const evalDay = evaluateCollectiveDate(state.selectedDate);
+      const circumference = 2 * Math.PI * 44; // 276.46
+      const offset = circumference - (evalDay.score / 100) * circumference;
+
+      const arc = document.getElementById('heroRingArc');
+      arc.style.strokeDashoffset = offset.toFixed(2);
+      if (evalDay.score >= 80) arc.setAttribute('stroke', '#00e676');
+      else if (evalDay.fail > 0 && evalDay.score < 50) arc.setAttribute('stroke', '#ff1744');
+      else if (evalDay.score > 0) arc.setAttribute('stroke', '#00e5ff');
+      else arc.setAttribute('stroke', '#2d384a');
+
+      document.getElementById('heroScoreVal').textContent = `${evalDay.score}%`;
+      document.getElementById('kpiDoneCount').textContent = evalDay.success;
+      document.getElementById('kpiFailCount').textContent = evalDay.fail;
+      document.getElementById('kpiPendingCount').textContent = evalDay.empty + evalDay.partial + evalDay.skip;
+
+      // 14-Day Collective Sparkline (Pure SVG)
+      const anchor = parseDateISO(state.selectedDate);
+      const pts = [];
+      let sum = 0;
+      for (let i = 13; i >= 0; i--) {
+        const dStr = formatDateISO(addDays(anchor, -i));
+        const sc = evaluateCollectiveDate(dStr).score;
+        pts.push(sc);
+        sum += sc;
+      }
+      const avg = Math.round(sum / 14);
+      document.getElementById('sparklineAvgLabel').textContent = `${avg}% avg`;
+
+      const w = 220, h = 38, pad = 4;
+      const coords = pts.map((val, idx) => {
+        const x = pad + (idx / 13) * (w - pad * 2);
+        const y = h - pad - (val / 100) * (h - pad * 2);
+        return [x, y];
+      });
+      const polyPoints = coords.map(c => `${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(' ');
+      const areaPoints = `${coords[0][0].toFixed(1)},${h} ${polyPoints} ${coords[coords.length - 1][0].toFixed(1)},${h}`;
+
+      const sparkWrap = document.getElementById('collectiveSparklineWrap');
+      sparkWrap.innerHTML = `
+        <svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.45"/>
+              <stop offset="100%" stop-color="#00e5ff" stop-opacity="0.0"/>
+            </linearGradient>
+          </defs>
+          <polygon points="${areaPoints}" fill="url(#sparkGrad)" />
+          <polyline points="${polyPoints}" fill="none" stroke="#00e5ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="${coords[13][0].toFixed(1)}" cy="${coords[13][1].toFixed(1)}" r="3.2" fill="#00e676" />
+        </svg>
+      `;
+    }
+
+    function renderHabitCards() {
+      const container = document.getElementById('habitsListContainer');
+      const filtered = state.habits.filter(h => state.activeCategory === 'All' || h.category === state.activeCategory);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="section-card" style="text-align:center; padding:28px 16px;">
+            <div style="font-size:28px; margin-bottom:8px;">✨</div>
+            <div style="font-weight:800; margin-bottom:4px;">No Habits in "${state.activeCategory}"</div>
+            <div style="font-size:12px; color:var(--text-secondary);">Tap "+ New Habit" on the bottom bar to create one.</div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      for (const habit of filtered) {
+        const log = state.logsMap.get(`${habit.id}_${state.selectedDate}`);
+        const evalRes = evaluateHabitDay(habit, log);
+        const metrics = computeHabitMetrics(habit);
+
+        const stateClass =
+          evalRes.status === 'SUCCESS' ? 'state-success' :
+          evalRes.status === 'FAIL' ? 'state-fail' :
+          evalRes.status === 'PARTIAL' ? 'state-partial' :
+          evalRes.status === 'SKIP' ? 'state-skip' : '';
+
+        const typeTagClass =
+          habit.type === 'floor' ? 'type-floor' :
+          habit.type === 'ceiling' ? 'type-ceiling' : 'type-boolean';
+
+        const typeBadgeLabel =
+          habit.type === 'floor' ? `MIN ≥ ${habit.target} ${habit.unit}` :
+          habit.type === 'ceiling' ? `MAX ≤ ${habit.target} ${habit.unit}` : 'TRI-STATE BOOL';
+
+        let barColor = '#2d384a';
+        let barPct = Math.round(evalRes.ratio * 100);
+        if (evalRes.status === 'SUCCESS') {
+          barColor = 'var(--neon-emerald)';
+          barPct = 100;
+        } else if (evalRes.status === 'FAIL') {
+          barColor = 'var(--neon-crimson)';
+          barPct = 100;
+        } else if (evalRes.status === 'PARTIAL') {
+          barColor = 'var(--neon-amber)';
+        } else if (evalRes.status === 'SKIP') {
+          barColor = 'var(--neon-cyan)';
+          barPct = 100;
+        }
+
+        const currentVal = log && typeof log.value === 'number' ? log.value : 0;
+        const noteText = log && log.note ? log.note : '';
+
+        // Alert banner for immediate ceiling breach or explicit fail
+        let failBannerHtml = '';
+        if (evalRes.status === 'FAIL') {
+          const reason = evalRes.breached
+            ? `🚨 IMMEDIATE FAIL: Exceeded ceiling (${currentVal} > ${habit.target} ${habit.unit})`
+            : `🚨 EXPLICIT FAILURE LOGGED`;
+          failBannerHtml = `
+            <div class="crimson-fail-banner">
+              <span>${reason}</span>
+              <button class="mini-btn" data-action="open-note" data-id="${habit.id}" style="border-color:var(--neon-crimson); color:#fff;">
+                ${noteText ? 'Edit Reflection' : '+ Add Reflection'}
+              </button>
+            </div>
+          `;
+        }
+
+        // Interactive Controls per Archetype
+        let controlsHtml = '';
+        if (habit.type === 'floor') {
+          controlsHtml = `
+            <div class="controls-row">
+              <div class="stepper-group">
+                <button class="stepper-btn" data-action="step-dec" data-id="${habit.id}" aria-label="Decrease">−</button>
+                <div class="numeric-input-wrap">
+                  <input type="number" class="direct-num-input" data-action="direct-input" data-id="${habit.id}" value="${currentVal}" step="any" />
+                  <span style="font-size:11px; color:var(--text-secondary); font-weight:700;">/ ${habit.target} ${habit.unit}</span>
+                </div>
+                <button class="stepper-btn" data-action="step-inc" data-id="${habit.id}" aria-label="Increase">＋</button>
+              </div>
+              <div class="quick-state-btns">
+                <button class="action-btn btn-success ${evalRes.status === 'SUCCESS' ? 'is-active' : ''}" data-action="quick-hit-floor" data-id="${habit.id}" title="Hit Target">✓</button>
+                <button class="action-btn btn-fail ${evalRes.status === 'FAIL' ? 'is-active' : ''}" data-action="mark-fail" data-id="${habit.id}" title="Explicit Fail">✕</button>
+                <button class="action-btn btn-skip ${evalRes.status === 'SKIP' ? 'is-active' : ''}" data-action="mark-skip" data-id="${habit.id}" title="Grace Day">❄</button>
+              </div>
+            </div>
+          `;
+        } else if (habit.type === 'ceiling') {
+          controlsHtml = `
+            <div class="controls-row">
+              <div class="stepper-group">
+                <button class="stepper-btn" data-action="step-dec" data-id="${habit.id}" aria-label="Decrease">−</button>
+                <div class="numeric-input-wrap">
+                  <input type="number" class="direct-num-input" data-action="direct-input" data-id="${habit.id}" value="${currentVal}" step="any" />
+                  <span style="font-size:11px; color:var(--text-secondary); font-weight:700;">max ${habit.target} ${habit.unit}</span>
+                </div>
+                <button class="stepper-btn" data-action="step-inc" data-id="${habit.id}" aria-label="Increase">＋</button>
+              </div>
+              <div class="quick-state-btns">
+                <button class="action-btn btn-success ${evalRes.status === 'SUCCESS' ? 'is-active' : ''}" data-action="ceiling-safe" data-id="${habit.id}" title="Log Safe Under Limit">✓ Safe</button>
+                <button class="action-btn btn-fail ${evalRes.status === 'FAIL' ? 'is-active' : ''}" data-action="mark-fail" data-id="${habit.id}" title="Explicit Fail">✕</button>
+                <button class="action-btn btn-skip ${evalRes.status === 'SKIP' ? 'is-active' : ''}" data-action="mark-skip" data-id="${habit.id}" title="Grace Day">❄</button>
+              </div>
+            </div>
+          `;
+        } else {
+          // Tri-State Boolean
+          controlsHtml = `
+            <div class="tri-state-grid">
+              <button class="action-btn btn-success ${evalRes.status === 'SUCCESS' ? 'is-active' : ''}" data-action="bool-success" data-id="${habit.id}">
+                <span>✓ Done</span>
+              </button>
+              <button class="action-btn btn-fail ${evalRes.status === 'FAIL' ? 'is-active' : ''}" data-action="mark-fail" data-id="${habit.id}">
+                <span>✕ Relapsed / Fail</span>
+              </button>
+              <button class="action-btn btn-skip ${evalRes.status === 'SKIP' ? 'is-active' : ''}" data-action="mark-skip" data-id="${habit.id}">
+                <span>❄ Grace</span>
+              </button>
+            </div>
+          `;
+        }
+
+        html += `
+          <article class="habit-card ${stateClass}" data-habit-card="${habit.id}">
+            <div class="habit-card-top" data-action="open-deep-dive" data-id="${habit.id}">
+              <div class="habit-identity">
+                <div class="habit-icon">${habit.icon}</div>
+                <div class="habit-title-wrap">
+                  <div class="habit-name">${escapeHtml(habit.name)}</div>
+                  <div class="habit-meta-tags">
+                    <span class="meta-tag">${escapeHtml(habit.category)}</span>
+                    <span class="meta-tag ${typeTagClass}">${escapeHtml(typeBadgeLabel)}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="habit-badges-right">
+                <div class="streak-badge">🔥 ${metrics.currentStreak}d</div>
+                <div class="winrate-sub">${metrics.winRate}% win • Best ${metrics.bestStreak}d</div>
+              </div>
+            </div>
+
+            ${failBannerHtml}
+
+            <div class="habit-progress-wrap">
+              <div class="habit-progress-labels">
+                <span>${escapeHtml(evalRes.label)}</span>
+                <span>Grace: ${metrics.graceThisMonth}/${habit.graceAllowance} mo</span>
+              </div>
+              <div class="habit-progress-track">
+                <div class="habit-progress-fill" style="width:${barPct}%; background:${barColor};"></div>
+              </div>
+            </div>
+
+            ${controlsHtml}
+
+            <div class="card-footer-bar">
+              <button class="note-trigger-btn ${noteText ? 'has-note' : ''}" data-action="open-note" data-id="${habit.id}">
+                <span>📝</span>
+                <span>${noteText ? escapeHtml(noteText) : 'Add reflection / trigger note...'}</span>
+              </button>
+              <button class="deep-dive-btn" data-action="open-deep-dive" data-id="${habit.id}">
+                <span>Analytics & 365d</span>
+                <span>→</span>
+              </button>
+            </div>
+          </article>
+        `;
+      }
+
+      container.innerHTML = html;
+      bindHabitCardEvents(container);
+    }
+
+    function bindHabitCardEvents(container) {
+      container.querySelectorAll('[data-action]').forEach(el => {
+        const action = el.getAttribute('data-action');
+        const habitId = el.getAttribute('data-id');
+        const habit = state.habits.find(h => h.id === habitId);
+        if (!habit) return;
+
+        if (action === 'direct-input') {
+          el.addEventListener('change', async (e) => {
+            const val = Math.max(0, parseFloat(e.target.value) || 0);
+            const isCeilingBreach = habit.type === 'ceiling' && val > habit.target;
+            triggerHaptic(isCeilingBreach ? 'fail' : 'light');
+            await upsertHabitLog(habit.id, state.selectedDate, {
+              value: val,
+              logged: true,
+              explicitState: isCeilingBreach ? 'fail' : 'auto'
+            });
+            if (isCeilingBreach) {
+              showToast(`Ceiling breached on "${habit.name}"!`, 'fail');
+            }
+          });
+          return;
+        }
+
+        el.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const existing = state.logsMap.get(`${habit.id}_${state.selectedDate}`);
+          const curVal = existing && typeof existing.value === 'number' ? existing.value : 0;
+          const step = Number(habit.step || 1);
+
+          if (action === 'open-deep-dive') {
+            triggerHaptic('light');
+            openDeepDiveModal(habit.id);
+          } else if (action === 'open-note') {
+            triggerHaptic('light');
+            openNoteModal(habit.id, state.selectedDate);
+          } else if (action === 'step-inc') {
+            const nextVal = Number((curVal + step).toFixed(2));
+            const isBreach = habit.type === 'ceiling' && nextVal > habit.target;
+            triggerHaptic(isBreach ? 'fail' : 'light');
+            await upsertHabitLog(habit.id, state.selectedDate, {
+              value: nextVal,
+              logged: true,
+              explicitState: isBreach ? 'fail' : 'auto'
+            });
+            if (isBreach) {
+              showToast(`Immediate Fail: Ceiling exceeded (${nextVal} > ${habit.target})`, 'fail');
+            } else if (habit.type === 'floor' && nextVal >= habit.target && curVal < habit.target) {
+              showToast(`Target achieved for ${habit.name}!`, 'success');
+            }
+          } else if (action === 'step-dec') {
+            const nextVal = Math.max(0, Number((curVal - step).toFixed(2)));
+            triggerHaptic('light');
+            const stillBreach = habit.type === 'ceiling' && nextVal > habit.target;
+            await upsertHabitLog(habit.id, state.selectedDate, {
+              value: nextVal,
+              logged: true,
+              explicitState: stillBreach ? 'fail' : 'auto'
+            });
+          } else if (action === 'quick-hit-floor') {
+            triggerHaptic('light');
+            const nextVal = Math.max(curVal, habit.target);
+            await upsertHabitLog(habit.id, state.selectedDate, {
+              value: nextVal,
+              logged: true,
+              explicitState: 'success'
+            });
+            showToast(`${habit.name} marked Complete!`, 'success');
+          } else if (action === 'ceiling-safe') {
+            triggerHaptic('light');
+            const safeVal = curVal <= habit.target ? curVal : habit.target;
+            await upsertHabitLog(habit.id, state.selectedDate, {
+              value: safeVal,
+              logged: true,
+              explicitState: 'success'
+            });
+            showToast(`${habit.name} logged safe within ceiling!`, 'success');
+          } else if (action === 'bool-success') {
+            triggerHaptic('light');
+            await upsertHabitLog(habit.id, state.selectedDate, {
+              value: 1,
+              logged: true,
+              explicitState: 'success'
+            });
+            showToast(`${habit.name} completed!`, 'success');
+          } else if (action === 'mark-fail') {
+            triggerHaptic('fail');
+            const failVal = habit.type === 'ceiling' ? habit.target + step : curVal;
+            await upsertHabitLog(habit.id, state.selectedDate, {
+              value: failVal,
+              logged: true,
+              explicitState: 'fail'
+            });
+            showToast(`Explicit Failure logged. Add a reflection note.`, 'fail');
+            openNoteModal(habit.id, state.selectedDate, true);
+          } else if (action === 'mark-skip') {
+            triggerHaptic('light');
+            await upsertHabitLog(habit.id, state.selectedDate, {
+              logged: true,
+              explicitState: 'skip'
+            });
+            showToast(`Grace / Skip Day applied — streak protected.`);
+          }
+        });
+      });
+    }
+
+    /********************************************************************
+     * 7. MULTI-HORIZON ANALYTICS VIEW (MONTHLY + 365-DAY + BENTO)
+     ********************************************************************/
+    function populateAnalyticsScopeDropdown() {
+      const sel = document.getElementById('analyticsScopeSelect');
+      const currentVal = sel.value || 'ALL';
+      let html = `<option value="ALL">All Habits (Collective)</option>`;
+      for (const h of state.habits) {
+        html += `<option value="${h.id}">${h.icon} ${escapeHtml(h.name)}</option>`;
+      }
+      sel.innerHTML = html;
+      sel.value = state.habits.some(h => h.id === currentVal) ? currentVal : 'ALL';
+      state.analyticsScope = sel.value;
+    }
+
+    function renderAnalyticsView() {
+      populateAnalyticsScopeDropdown();
+      const scope = state.analyticsScope;
+
+      // 1. Render 6 Metrics Bento
+      const bentoEl = document.getElementById('analyticsMetricsBento');
+      if (scope === 'ALL') {
+        // Aggregate across all habits
+        let sumCurrStreak = 0, maxBestStreak = 0, sumSuccess = 0, sumFail = 0, sumBroken = 0, sumGrace = 0;
+        for (const h of state.habits) {
+          const m = computeHabitMetrics(h);
+          sumCurrStreak += m.currentStreak;
+          if (m.bestStreak > maxBestStreak) maxBestStreak = m.bestStreak;
+          sumSuccess += m.totalSuccess;
+          sumFail += m.totalFail;
+          sumBroken += m.brokenStreaks;
+          sumGrace += m.graceUsed;
+        }
+        const avgStreak = state.habits.length ? (sumCurrStreak / state.habits.length).toFixed(1) : '0.0';
+        const totalEval = sumSuccess + sumFail;
+        const winRate = totalEval > 0 ? ((sumSuccess / totalEval) * 100).toFixed(1) : '0.0';
+
+        bentoEl.innerHTML = `
+          <div class="bento-box">
+            <div class="bento-label">Avg Active Streak</div>
+            <div class="bento-value" style="color:var(--neon-cyan);">🔥 ${avgStreak}d</div>
+            <div class="bento-sub">Across ${state.habits.length} habits</div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-label">Best Streak Ever</div>
+            <div class="bento-value" style="color:var(--neon-emerald);">🏆 ${maxBestStreak}d</div>
+            <div class="bento-sub">Peak consistency</div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-label">Success vs Fail</div>
+            <div class="bento-value"><span style="color:var(--neon-emerald);">${sumSuccess}</span> <span style="font-size:14px;color:var(--text-muted);">/</span> <span style="color:var(--neon-crimson);">${sumFail}</span></div>
+            <div class="bento-sub">All-time logged outcomes</div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-label">All-Time Win Rate</div>
+            <div class="bento-value" style="color:var(--neon-emerald);">${winRate}%</div>
+            <div class="bento-sub">Target achievement ratio</div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-label">Broken Streaks</div>
+            <div class="bento-value" style="color:var(--neon-crimson);">${sumBroken}</div>
+            <div class="bento-sub">Total streak resets</div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-label">Grace Days Used</div>
+            <div class="bento-value" style="color:var(--neon-amber);">❄ ${sumGrace}</div>
+            <div class="bento-sub">Protected rest days</div>
+          </div>
+        `;
+      } else {
+        const habit = state.habits.find(h => h.id === scope);
+        if (habit) {
+          bentoEl.innerHTML = buildSingleHabitBentoHTML(computeHabitMetrics(habit), habit);
+        }
+      }
+
+      renderMonthlyHeatmapGrid(
+        state.calMonthDate,
+        scope,
+        document.getElementById('monthlyHeatmapGrid'),
+        document.getElementById('calMonthTitle')
+      );
+
+      renderAnnualMatrixGrid(
+        scope,
+        document.getElementById('annualMatrixGrid'),
+        document.getElementById('annualMatrixScroll'),
+        document.getElementById('matrixTapInfo')
+      );
+    }
+
+    function buildSingleHabitBentoHTML(m, habit) {
+      return `
+        <div class="bento-box">
+          <div class="bento-label">Current Streak</div>
+          <div class="bento-value" style="color:var(--neon-cyan);">🔥 ${m.currentStreak}d</div>
+          <div class="bento-sub">Active momentum</div>
+        </div>
+        <div class="bento-box">
+          <div class="bento-label">Best Streak Ever</div>
+          <div class="bento-value" style="color:var(--neon-emerald);">🏆 ${m.bestStreak}d</div>
+          <div class="bento-sub">Personal record</div>
+        </div>
+        <div class="bento-box">
+          <div class="bento-label">Success vs Fail</div>
+          <div class="bento-value"><span style="color:var(--neon-emerald);">${m.totalSuccess}</span> <span style="font-size:14px;color:var(--text-muted);">/</span> <span style="color:var(--neon-crimson);">${m.totalFail}</span></div>
+          <div class="bento-sub">${m.totalPartial} partial days</div>
+        </div>
+        <div class="bento-box">
+          <div class="bento-label">All-Time Win Rate</div>
+          <div class="bento-value" style="color:var(--neon-emerald);">${m.winRate}%</div>
+          <div class="bento-sub">Completion rate</div>
+        </div>
+        <div class="bento-box">
+          <div class="bento-label">Broken Streaks</div>
+          <div class="bento-value" style="color:var(--neon-crimson);">${m.brokenStreaks}</div>
+          <div class="bento-sub">Times streak reset</div>
+        </div>
+        <div class="bento-box">
+          <div class="bento-label">Grace Days Used</div>
+          <div class="bento-value" style="color:var(--neon-amber);">❄ ${m.graceUsed}</div>
+          <div class="bento-sub">${m.graceThisMonth}/${habit.graceAllowance} used this month</div>
+        </div>
+      `;
+    }
+
+    function renderMonthlyHeatmapGrid(monthDateObj, scope, gridEl, titleEl) {
+      const year = monthDateObj.getFullYear();
+      const month = monthDateObj.getMonth();
+      titleEl.textContent = monthDateObj.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+      const firstDay = new Date(year, month, 1);
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      // Convert Sunday=0..Saturday=6 into Monday=0..Sunday=6
+      const startOffset = (firstDay.getDay() + 6) % 7;
+
+      let html = '';
+      for (let p = 0; p < startOffset; p++) {
+        html += `<div class="cal-cell empty-pad"></div>`;
+      }
+
+      const habit = scope !== 'ALL' ? state.habits.find(h => h.id === scope) : null;
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dStr = formatDateISO(new Date(year, month, d));
+        let status = 'EMPTY';
+        if (habit) {
+          const log = state.logsMap.get(`${habit.id}_${dStr}`);
+          status = evaluateHabitDay(habit, log).status;
+        } else {
+          status = evaluateCollectiveDate(dStr).status;
+        }
+
+        const cellClass =
+          status === 'SUCCESS' ? 'cell-success' :
+          status === 'FAIL' ? 'cell-fail' :
+          status === 'PARTIAL' ? 'cell-partial' :
+          status === 'SKIP' ? 'cell-skip' : '';
+
+        html += `
+          <div class="cal-cell ${cellClass}" data-cal-date="${dStr}" title="${dStr}: ${status}">
+            <span>${d}</span>
+          </div>
+        `;
+      }
+
+      gridEl.innerHTML = html;
+      gridEl.querySelectorAll('[data-cal-date]').forEach(cell => {
+        cell.addEventListener('click', () => {
+          const dStr = cell.getAttribute('data-cal-date');
+          triggerHaptic('light');
+          state.selectedDate = dStr;
+          state.weekAnchorDate = getMonday(parseDateISO(dStr));
+          showToast(`Selected ${formatHumanDate(dStr)}`);
+          renderAll();
+        });
+      });
+    }
+
+    function renderAnnualMatrixGrid(scope, gridEl, scrollWrapEl, infoLabelEl) {
+      const today = new Date();
+      const startDay = addDays(today, -364);
+      const habit = scope !== 'ALL' ? state.habits.find(h => h.id === scope) : null;
+
+      let html = '';
+      for (let i = 0; i < 365; i++) {
+        const dObj = addDays(startDay, i);
+        const dStr = formatDateISO(dObj);
+        let status = 'EMPTY';
+
+        if (habit) {
+          const log = state.logsMap.get(`${habit.id}_${dStr}`);
+          status = evaluateHabitDay(habit, log).status;
+        } else {
+          status = evaluateCollectiveDate(dStr).status;
+        }
+
+        const sqClass =
+          status === 'SUCCESS' ? 'lvl-success' :
+          status === 'FAIL' ? 'lvl-fail' :
+          status === 'PARTIAL' ? 'lvl-partial' :
+          status === 'SKIP' ? 'lvl-skip' : '';
+
+        html += `<div class="matrix-sq ${sqClass}" data-mat-date="${dStr}" data-mat-status="${status}"></div>`;
+      }
+
+      gridEl.innerHTML = html;
+
+      // Scroll to right-most (most recent) weeks automatically
+      requestAnimationFrame(() => {
+        if (scrollWrapEl) {
+          scrollWrapEl.scrollLeft = scrollWrapEl.scrollWidth;
+        }
+      });
+
+      gridEl.querySelectorAll('.matrix-sq').forEach(sq => {
+        sq.addEventListener('click', () => {
+          triggerHaptic('light');
+          const dStr = sq.getAttribute('data-mat-date');
+          const st = sq.getAttribute('data-mat-status');
+          if (infoLabelEl) {
+            infoLabelEl.textContent = `${dStr} • ${st}`;
+          } else {
+            showToast(`${dStr}: ${st}`);
+          }
+        });
+      });
+    }
+
+    /********************************************************************
+     * 8. INDIVIDUAL HABIT DEEP-DIVE ANALYTICS MODAL
+     ********************************************************************/
+    function openDeepDiveModal(habitId) {
+      const habit = state.habits.find(h => h.id === habitId);
+      if (!habit) return;
+      state.ddHabitId = habitId;
+      state.ddMonthDate = new Date(parseDateISO(state.selectedDate).getFullYear(), parseDateISO(state.selectedDate).getMonth(), 1);
+      renderDeepDiveModal();
+      document.getElementById('deepDiveModal').classList.add('open');
+    }
+
+    function renderDeepDiveModal() {
+      const habit = state.habits.find(h => h.id === state.ddHabitId);
+      if (!habit) return;
+
+      const m = computeHabitMetrics(habit);
+      document.getElementById('deepDiveTitle').textContent = `${habit.icon} ${habit.name}`;
+      const ruleText =
+        habit.type === 'floor' ? `Minimum Target: At least ${habit.target} ${habit.unit}/day` :
+        habit.type === 'ceiling' ? `Maximum Ceiling: At most ${habit.target} ${habit.unit}/day` :
+        `Tri-State Boolean Goal`;
+      document.getElementById('deepDiveSubtitle').textContent = `${habit.category} • ${ruleText}`;
+
+      // 1. 6-Metric Bento
+      document.getElementById('deepDiveMetricsGrid').innerHTML = buildSingleHabitBentoHTML(m, habit);
+
+      // 2. Pure SVG Donut Chart & Ratio Bars
+      const total = Math.max(1, m.totalSuccess + m.totalFail + m.totalPartial + m.graceUsed);
+      const sucPct = Math.round((m.totalSuccess / total) * 100);
+      const failPct = Math.round((m.totalFail / total) * 100);
+      const partPct = Math.round((m.totalPartial / total) * 100);
+      const skipPct = Math.max(0, 100 - sucPct - failPct - partPct);
+
+      const r = 40;
+      const circ = 2 * Math.PI * r;
+      const sucLen = (m.totalSuccess / total) * circ;
+      const failLen = (m.totalFail / total) * circ;
+      const partLen = (m.totalPartial / total) * circ;
+
+      document.getElementById('deepDiveDonutWrap').innerHTML = `
+        <svg width="110" height="110" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="${r}" fill="none" stroke="#18202c" stroke-width="12" />
+          <circle cx="55" cy="55" r="${r}" fill="none" stroke="#00e676" stroke-width="12"
+            stroke-dasharray="${sucLen.toFixed(2)} ${circ.toFixed(2)}" stroke-dashoffset="0"
+            transform="rotate(-90 55 55)" />
+          <circle cx="55" cy="55" r="${r}" fill="none" stroke="#ff1744" stroke-width="12"
+            stroke-dasharray="${failLen.toFixed(2)} ${circ.toFixed(2)}" stroke-dashoffset="${(-sucLen).toFixed(2)}"
+            transform="rotate(-90 55 55)" />
+          <circle cx="55" cy="55" r="${r}" fill="none" stroke="#ff9100" stroke-width="12"
+            stroke-dasharray="${partLen.toFixed(2)} ${circ.toFixed(2)}" stroke-dashoffset="${(-(sucLen + failLen)).toFixed(2)}"
+            transform="rotate(-90 55 55)" />
+          <text x="55" y="53" text-anchor="middle" fill="#f0f6fc" font-size="16" font-weight="900">${m.winRate}%</text>
+          <text x="55" y="67" text-anchor="middle" fill="#8b949e" font-size="9" font-weight="700">WIN RATE</text>
+        </svg>
+      `;
+
+      document.getElementById('deepDiveRatioBars').innerHTML = `
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; margin-bottom:2px;">
+            <span style="color:var(--neon-emerald);">✓ Success (${m.totalSuccess})</span>
+            <span>${sucPct}%</span>
+          </div>
+          <div class="habit-progress-track" style="height:6px;"><div class="habit-progress-fill" style="width:${sucPct}%; background:var(--neon-emerald);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; margin-bottom:2px;">
+            <span style="color:var(--neon-crimson);">✕ Explicit Fail (${m.totalFail})</span>
+            <span>${failPct}%</span>
+          </div>
+          <div class="habit-progress-track" style="height:6px;"><div class="habit-progress-fill" style="width:${failPct}%; background:var(--neon-crimson);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; margin-bottom:2px;">
+            <span style="color:var(--neon-amber);">◐ Partial / Incomplete (${m.totalPartial})</span>
+            <span>${partPct}%</span>
+          </div>
+          <div class="habit-progress-track" style="height:6px;"><div class="habit-progress-fill" style="width:${partPct}%; background:var(--neon-amber);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; margin-bottom:2px;">
+            <span style="color:var(--neon-cyan);">❄ Grace / Skip (${m.graceUsed})</span>
+            <span>${skipPct}%</span>
+          </div>
+          <div class="habit-progress-track" style="height:6px;"><div class="habit-progress-fill" style="width:${skipPct}%; background:var(--neon-cyan);"></div></div>
+        </div>
+      `;
+
+      // 3. Monthly Heatmap for this habit
+      renderMonthlyHeatmapGrid(
+        state.ddMonthDate,
+        habit.id,
+        document.getElementById('ddMonthlyGrid'),
+        document.getElementById('ddMonthLabel')
+      );
+
+      // 4. 365-Day Matrix for this habit
+      renderAnnualMatrixGrid(
+        habit.id,
+        document.getElementById('ddAnnualMatrix'),
+        document.getElementById('ddMatrixScroll'),
+        null
+      );
+
+      // 5. Failure Reflections & Notes Log
+      const notesFeed = document.getElementById('ddNotesFeed');
+      const habitLogsWithNotes = [];
+      state.logsMap.forEach((log) => {
+        if (log.habitId === habit.id && (log.note || log.explicitState === 'fail')) {
+          habitLogsWithNotes.push(log);
+        }
+      });
+      habitLogsWithNotes.sort((a, b) => (b.date > a.date ? 1 : -1));
+
+      if (habitLogsWithNotes.length === 0) {
+        notesFeed.innerHTML = `<div style="font-size:12px; color:var(--text-secondary); text-align:center; padding:12px;">No failure reflections or notes recorded yet.</div>`;
+      } else {
+        notesFeed.innerHTML = habitLogsWithNotes.slice(0, 20).map(l => {
+          const ev = evaluateHabitDay(habit, l);
+          const isSuccess = ev.status === 'SUCCESS';
+          return `
+            <div class="note-entry ${isSuccess ? 'note-is-success' : ''}">
+              <div class="note-entry-head">
+                <span>${l.date}</span>
+                <span style="color:${ev.status === 'FAIL' ? 'var(--neon-crimson)' : ev.status === 'SUCCESS' ? 'var(--neon-emerald)' : 'var(--neon-cyan)'};">${ev.status}</span>
+              </div>
+              <div class="note-entry-body">${l.note ? escapeHtml(l.note) : '<em style="color:var(--text-muted);">Explicit failure logged (no note entered)</em>'}</div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    /********************************************************************
+     * 9. REFLECTION NOTE & EXPLICIT FAILURE MODAL
+     ********************************************************************/
+    function openNoteModal(habitId, dateStr, isFailContext = false) {
+      const habit = state.habits.find(h => h.id === habitId);
+      if (!habit) return;
+      state.noteContext = { habitId, dateStr };
+      const existing = state.logsMap.get(`${habitId}_${dateStr}`);
+
+      document.getElementById('noteModalTitle').textContent = isFailContext
+        ? `🚨 Failure Reflection: ${habit.name}`
+        : `📝 Daily Note: ${habit.name}`;
+      document.getElementById('noteModalSub').textContent = `${formatHumanDate(dateStr)} — Document triggers, obstacles, or wins.`;
+      document.getElementById('noteTextarea').value = existing && existing.note ? existing.note : '';
+      document.getElementById('noteModal').classList.add('open');
+    }
+
+    /********************************************************************
+     * 10. ADD / EDIT HABIT MODAL
+     ********************************************************************/
+    function renderEmojiPicker() {
+      const grid = document.getElementById('emojiPickerGrid');
+      grid.innerHTML = EMOJI_OPTIONS.map(em => `
+        <div class="emoji-opt ${state.selectedEmoji === em ? 'selected' : ''}" data-emoji="${em}">${em}</div>
+      `).join('');
+
+      grid.querySelectorAll('.emoji-opt').forEach(el => {
+        el.addEventListener('click', () => {
+          triggerHaptic('light');
+          state.selectedEmoji = el.getAttribute('data-emoji');
+          renderEmojiPicker();
+        });
+      });
+    }
+
+    function updateArchetypeUI() {
+      const cards = document.querySelectorAll('#archetypeSelector .archetype-card');
+      cards.forEach(c => {
+        c.classList.toggle('selected', c.getAttribute('data-type') === state.selectedArchetype);
+      });
+
+      const numFields = document.getElementById('numericTargetFields');
+      const targetLbl = document.getElementById('targetValLabel');
+      if (state.selectedArchetype === 'boolean') {
+        numFields.style.display = 'none';
+      } else {
+        numFields.style.display = 'grid';
+        targetLbl.textContent = state.selectedArchetype === 'floor' ? 'Target Min (≥)' : 'Ceiling Max (≤)';
+      }
+    }
+
+    function openHabitFormModal(habitToEdit = null) {
+      const titleEl = document.getElementById('habitFormTitle');
+      const editIdInput = document.getElementById('editHabitId');
+      const nameInput = document.getElementById('habitNameInput');
+      const catInput = document.getElementById('habitCategoryInput');
+      const targetInput = document.getElementById('habitTargetInput');
+      const unitInput = document.getElementById('habitUnitInput');
+      const stepInput = document.getElementById('habitStepInput');
+      const graceInput = document.getElementById('habitGraceInput');
+
+      if (habitToEdit) {
+        titleEl.textContent = `Edit Habit: ${habitToEdit.name}`;
+        editIdInput.value = habitToEdit.id;
+        nameInput.value = habitToEdit.name;
+        catInput.value = habitToEdit.category;
+        state.selectedEmoji = habitToEdit.icon || '💧';
+        state.selectedArchetype = habitToEdit.type || 'floor';
+        targetInput.value = habitToEdit.target ?? 1;
+        unitInput.value = habitToEdit.unit || 'units';
+        stepInput.value = habitToEdit.step || 1;
+        graceInput.value = habitToEdit.graceAllowance ?? 3;
+      } else {
+        titleEl.textContent = 'Create New Habit';
+        editIdInput.value = '';
+        nameInput.value = '';
+        catInput.value = 'Health';
+        state.selectedEmoji = '💧';
+        state.selectedArchetype = 'floor';
+        targetInput.value = 8;
+        unitInput.value = 'glasses';
+        stepInput.value = 1;
+        graceInput.value = 3;
+      }
+
+      renderEmojiPicker();
+      updateArchetypeUI();
+      document.getElementById('habitFormModal').classList.add('open');
+    }
+
+    /********************************************************************
+     * 11. SINGLE-FILE VAULT SYNC ENGINE (FILE SYSTEM ACCESS API)
+     ********************************************************************/
+    function buildVaultPayload() {
+      const logsArray = Array.from(state.logsMap.values());
+      return {
+        app: 'NORD_HABIT_VAULT',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        habits: state.habits,
+        logs: logsArray
+      };
+    }
+
+    async function applyVaultPayload(payload) {
+      if (!payload || !Array.isArray(payload.habits) || !Array.isArray(payload.logs)) {
+        throw new Error('Invalid Vault JSON structure');
+      }
+      await dbClear('habits');
+      await dbClear('logs');
+      for (const h of payload.habits) {
+        await dbPut('habits', h);
+      }
+      for (const l of payload.logs) {
+        await dbPut('logs', l);
+      }
+      await loadAllDataFromDB();
+      renderAll();
+    }
+
+    function updateVaultUIStatus() {
+      const hasFS = typeof window.showSaveFilePicker === 'function';
+      const fsTag = document.getElementById('fsSupportTag');
+      if (fsTag) {
+        fsTag.textContent = hasFS ? 'File System API Ready' : 'Fallback Mode';
+        fsTag.style.color = hasFS ? 'var(--neon-emerald)' : 'var(--neon-amber)';
+      }
+
+      const nameEl = document.getElementById('vaultLinkedFileName');
+      const syncEl = document.getElementById('vaultLastSyncTime');
+      const quickBadge = document.getElementById('vaultQuickBadge');
+      const quickBadgeText = document.getElementById('vaultBadgeText');
+
+      if (state.fileHandle || state.linkedFileName) {
+        const displayName = (state.fileHandle && state.fileHandle.name) || state.linkedFileName || 'my_habits.json';
+        nameEl.textContent = displayName;
+        quickBadge.classList.add('vault-linked');
+        quickBadgeText.textContent = displayName;
+      } else {
+        nameEl.textContent = 'None linked yet';
+        quickBadge.classList.remove('vault-linked');
+        quickBadgeText.textContent = 'Unlinked';
+      }
+
+      syncEl.textContent = state.lastSyncTime || 'Never';
+    }
+
+    async function verifyFilePermission(fileHandle, withWrite = true) {
+      const opts = { mode: withWrite ? 'readwrite' : 'read' };
+      if ((await fileHandle.queryPermission(opts)) === 'granted') return true;
+      if ((await fileHandle.requestPermission(opts)) === 'granted') return true;
+      return false;
+    }
+
+    async function linkNewVaultFile() {
+      if (typeof window.showSaveFilePicker !== 'function') {
+        showToast('Direct File System API not supported on this browser; downloading JSON snapshot instead.', 'info');
+        exportFallbackJSON();
+        return;
+      }
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: 'my_habits.json',
+          types: [{ description: 'Habit Vault JSON', accept: { 'application/json': ['.json'] } }]
+        });
+        state.fileHandle = handle;
+        state.linkedFileName = handle.name;
+        await dbSetMeta('vaultFileHandle', handle);
+        await dbSetMeta('linkedFileName', handle.name);
+        await syncOverwriteVaultFile();
+      } catch (err) {
+        if (err && err.name !== 'AbortError') {
+          showToast(`Vault Link Error: ${err.message}`, 'fail');
+        }
+      }
+    }
+
+    async function openExistingVaultFile() {
+      if (typeof window.showOpenFilePicker !== 'function') {
+        document.getElementById('fallbackFileInput').click();
+        return;
+      }
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          multiple: false,
+          types: [{ description: 'Habit Vault JSON', accept: { 'application/json': ['.json'] } }]
+        });
+        if (!handle) return;
+        state.fileHandle = handle;
+        state.linkedFileName = handle.name;
+        await dbSetMeta('vaultFileHandle', handle);
+        await dbSetMeta('linkedFileName', handle.name);
+
+        const file = await handle.getFile();
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        await applyVaultPayload(parsed);
+
+        const stamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        state.lastSyncTime = `Loaded ${stamp}`;
+        await dbSetMeta('lastSyncTime', state.lastSyncTime);
+        updateVaultUIStatus();
+        triggerHaptic('light');
+        showToast(`Linked & loaded "${handle.name}"!`, 'success');
+      } catch (err) {
+        if (err && err.name !== 'AbortError') {
+          showToast(`Failed to open Vault file: ${err.message}`, 'fail');
+        }
+      }
+    }
+
+    async function syncOverwriteVaultFile() {
+      if (!state.fileHandle) {
+        await linkNewVaultFile();
+        return;
+      }
+      try {
+        const permitted = await verifyFilePermission(state.fileHandle, true);
+        if (!permitted) {
+          showToast('Write permission denied for linked file.', 'fail');
+          return;
+        }
+        const writable = await state.fileHandle.createWritable();
+        const payload = JSON.stringify(buildVaultPayload(), null, 2);
+        await writable.write(payload);
+        await writable.close();
+
+        const stamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        state.lastSyncTime = `${stamp} (Overwritten in-place)`;
+        await dbSetMeta('lastSyncTime', state.lastSyncTime);
+        updateVaultUIStatus();
+        triggerHaptic('light');
+        showToast(`Synced in-place to ${state.fileHandle.name}!`, 'success');
+      } catch (err) {
+        showToast(`Direct overwrite failed: ${err.message}`, 'fail');
+      }
+    }
+
+    async function pullFromVaultFile() {
+      if (!state.fileHandle) {
+        showToast('Link a Vault JSON file first.', 'fail');
+        return;
+      }
+      try {
+        const permitted = await verifyFilePermission(state.fileHandle, false);
+        if (!permitted) {
+          showToast('Read permission denied.', 'fail');
+          return;
+        }
+        const file = await state.fileHandle.getFile();
+        const parsed = JSON.parse(await file.text());
+        await applyVaultPayload(parsed);
+        const stamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        state.lastSyncTime = `Reloaded ${stamp}`;
+        await dbSetMeta('lastSyncTime', state.lastSyncTime);
+        updateVaultUIStatus();
+        triggerHaptic('light');
+        showToast(`Reloaded habits from ${state.fileHandle.name}!`, 'success');
+      } catch (err) {
+        showToast(`Reload failed: ${err.message}`, 'fail');
+      }
+    }
+
+    function exportFallbackJSON() {
+      const payload = JSON.stringify(buildVaultPayload(), null, 2);
+      const blob = new Blob([payload], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'my_habits.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      triggerHaptic('light');
+      showToast('Exported my_habits.json snapshot!', 'success');
+    }
+
+    /********************************************************************
+     * 12. MASTER RENDER & EVENT BINDINGS
+     ********************************************************************/
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderAll() {
+      renderWeekStrip();
+      renderCollectiveHero();
+      renderHabitCards();
+      renderAnalyticsView();
+      if (document.getElementById('deepDiveModal').classList.contains('open') && state.ddHabitId) {
+        renderDeepDiveModal();
+      }
+    }
+
+    function setupEventListeners() {
+      // Bottom Navigation Tabs
+      document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          triggerHaptic('light');
+          const targetId = btn.getAttribute('data-target');
+          document.querySelectorAll('.bottom-nav .nav-item').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          document.querySelectorAll('.view-section').forEach(sec => {
+            sec.classList.toggle('active', sec.id === targetId);
+          });
+          renderAll();
+        });
+      });
+
+      // Week Navigation Buttons
+      document.getElementById('prevWeekBtn').addEventListener('click', () => {
+        triggerHaptic('light');
+        state.weekAnchorDate = addDays(state.weekAnchorDate, -7);
+        state.selectedDate = formatDateISO(state.weekAnchorDate);
+        renderAll();
+      });
+
+      document.getElementById('nextWeekBtn').addEventListener('click', () => {
+        triggerHaptic('light');
+        state.weekAnchorDate = addDays(state.weekAnchorDate, 7);
+        state.selectedDate = formatDateISO(state.weekAnchorDate);
+        renderAll();
+      });
+
+      document.getElementById('jumpTodayBtn').addEventListener('click', () => {
+        triggerHaptic('light');
+        const now = new Date();
+        state.selectedDate = formatDateISO(now);
+        state.weekAnchorDate = getMonday(now);
+        renderAll();
+      });
+
+      // Category Filter Bar
+      document.querySelectorAll('#categoryFilterBar .cat-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          triggerHaptic('light');
+          state.activeCategory = pill.getAttribute('data-cat');
+          document.querySelectorAll('#categoryFilterBar .cat-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          renderHabitCards();
+        });
+      });
+
+      // Analytics Scope Select & Month Steppers
+      document.getElementById('analyticsScopeSelect').addEventListener('change', (e) => {
+        triggerHaptic('light');
+        state.analyticsScope = e.target.value;
+        renderAnalyticsView();
+      });
+
+      document.getElementById('calPrevMonthBtn').addEventListener('click', () => {
+        triggerHaptic('light');
+        state.calMonthDate = new Date(state.calMonthDate.getFullYear(), state.calMonthDate.getMonth() - 1, 1);
+        renderAnalyticsView();
+      });
+
+      document.getElementById('calNextMonthBtn').addEventListener('click', () => {
+        triggerHaptic('light');
+        state.calMonthDate = new Date(state.calMonthDate.getFullYear(), state.calMonthDate.getMonth() + 1, 1);
+        renderAnalyticsView();
+      });
+
+      // Deep Dive Modal Controls
+      document.getElementById('closeDeepDiveBtn').addEventListener('click', () => {
+        document.getElementById('deepDiveModal').classList.remove('open');
+      });
+
+      document.getElementById('ddPrevMonthBtn').addEventListener('click', () => {
+        triggerHaptic('light');
+        state.ddMonthDate = new Date(state.ddMonthDate.getFullYear(), state.ddMonthDate.getMonth() - 1, 1);
+        renderDeepDiveModal();
+      });
+
+      document.getElementById('ddNextMonthBtn').addEventListener('click', () => {
+        triggerHaptic('light');
+        state.ddMonthDate = new Date(state.ddMonthDate.getFullYear(), state.ddMonthDate.getMonth() + 1, 1);
+        renderDeepDiveModal();
+      });
+
+      document.getElementById('btnEditCurrentHabit').addEventListener('click', () => {
+        const habit = state.habits.find(h => h.id === state.ddHabitId);
+        if (!habit) return;
+        document.getElementById('deepDiveModal').classList.remove('open');
+        openHabitFormModal(habit);
+      });
+
+      document.getElementById('btnDeleteCurrentHabit').addEventListener('click', () => {
+        const habit = state.habits.find(h => h.id === state.ddHabitId);
+        if (!habit) return;
+        openConfirmModal(
+          'Delete Habit',
+          `Delete "${habit.name}" and all of its historical logs permanently?`,
+          async () => {
+            await dbDelete('habits', habit.id);
+            const toDelete = [];
+            state.logsMap.forEach((l, key) => {
+              if (l.habitId === habit.id) toDelete.push(key);
+            });
+            for (const k of toDelete) {
+              await dbDelete('logs', k);
+              state.logsMap.delete(k);
+            }
+            state.habits = state.habits.filter(h => h.id !== habit.id);
+            document.getElementById('deepDiveModal').classList.remove('open');
+            triggerHaptic('fail');
+            showToast(`Deleted "${habit.name}"`, 'fail');
+            renderAll();
+          }
+        );
+      });
+
+      // Add / Edit Habit Modal Controls
+      document.getElementById('btnOpenAddHabit').addEventListener('click', () => {
+        triggerHaptic('light');
+        openHabitFormModal(null);
+      });
+
+      document.getElementById('closeHabitFormBtn').addEventListener('click', () => {
+        document.getElementById('habitFormModal').classList.remove('open');
+      });
+
+      document.querySelectorAll('#archetypeSelector .archetype-card').forEach(card => {
+        card.addEventListener('click', () => {
+          triggerHaptic('light');
+          state.selectedArchetype = card.getAttribute('data-type');
+          updateArchetypeUI();
+        });
+      });
+
+      document.getElementById('habitForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('editHabitId').value;
+        const name = document.getElementById('habitNameInput').value.trim();
+        if (!name) return;
+
+        const habitObj = {
+          id: editId || `hab_${Date.now()}`,
+          name,
+          icon: state.selectedEmoji,
+          category: document.getElementById('habitCategoryInput').value,
+          type: state.selectedArchetype,
+          target: state.selectedArchetype === 'boolean' ? 1 : Number(document.getElementById('habitTargetInput').value || 0),
+          unit: state.selectedArchetype === 'boolean' ? 'session' : (document.getElementById('habitUnitInput').value.trim() || 'units'),
+          step: state.selectedArchetype === 'boolean' ? 1 : Math.max(0.1, Number(document.getElementById('habitStepInput').value || 1)),
+          graceAllowance: Number(document.getElementById('habitGraceInput').value || 3),
+          createdAt: Date.now(),
+          order: editId ? (state.habits.find(h => h.id === editId)?.order || state.habits.length + 1) : state.habits.length + 1
+        };
+
+        await dbPut('habits', habitObj);
+        await loadAllDataFromDB();
+        document.getElementById('habitFormModal').classList.remove('open');
+        triggerHaptic('light');
+        showToast(`Saved "${habitObj.name}"!`, 'success');
+        renderAll();
+      });
+
+      // Reflection Note Modal
+      document.getElementById('closeNoteModalBtn').addEventListener('click', () => {
+        document.getElementById('noteModal').classList.remove('open');
+      });
+
+      document.querySelectorAll('#quickReflectionChips [data-chip]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          triggerHaptic('light');
+          const ta = document.getElementById('noteTextarea');
+          const txt = chip.getAttribute('data-chip');
+          ta.value = ta.value ? `${ta.value} • ${txt}` : txt;
+        });
+      });
+
+      document.getElementById('saveNoteBtn').addEventListener('click', async () => {
+        if (!state.noteContext) return;
+        const noteVal = document.getElementById('noteTextarea').value.trim();
+        await upsertHabitLog(state.noteContext.habitId, state.noteContext.dateStr, { note: noteVal });
+        document.getElementById('noteModal').classList.remove('open');
+        triggerHaptic('light');
+        showToast('Reflection note saved!', 'success');
+      });
+
+      // Confirm Modal
+      const closeConfirm = () => {
+        document.getElementById('confirmModal').classList.remove('open');
+        state.confirmCallback = null;
+      };
+      document.getElementById('closeConfirmModalBtn').addEventListener('click', closeConfirm);
+      document.getElementById('confirmCancelBtn').addEventListener('click', closeConfirm);
+      document.getElementById('confirmProceedBtn').addEventListener('click', async () => {
+        const fn = state.confirmCallback;
+        closeConfirm();
+        if (typeof fn === 'function') await fn();
+      });
+
+      // Vault & Persistence Controls
+      document.getElementById('persistBadge').addEventListener('click', async () => {
+        triggerHaptic('light');
+        const locked = await initStoragePersistence();
+        showToast(locked ? 'IndexedDB Storage Persistence Locked!' : 'IndexedDB Active in Browser Storage.');
+      });
+
+      document.getElementById('vaultQuickBadge').addEventListener('click', async () => {
+        triggerHaptic('light');
+        if (state.fileHandle) {
+          await syncOverwriteVaultFile();
+        } else {
+          document.querySelector('.bottom-nav .nav-item[data-target="viewVault"]').click();
+        }
+      });
+
+      document.getElementById('btnLinkNewVault').addEventListener('click', linkNewVaultFile);
+      document.getElementById('btnOpenExistingVault').addEventListener('click', openExistingVaultFile);
+      document.getElementById('btnSyncOverwriteVault').addEventListener('click', syncOverwriteVaultFile);
+      document.getElementById('btnPullFromVault').addEventListener('click', pullFromVaultFile);
+      document.getElementById('btnFallbackDownload').addEventListener('click', exportFallbackJSON);
+
+      document.getElementById('fallbackFileInput').addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        try {
+          const parsed = JSON.parse(await file.text());
+          await applyVaultPayload(parsed);
+          triggerHaptic('light');
+          showToast(`Imported snapshot from ${file.name}!`, 'success');
+        } catch (err) {
+          showToast(`Import error: ${err.message}`, 'fail');
+        }
+        e.target.value = '';
+      });
+
+      document.getElementById('btnRequestPersistLock').addEventListener('click', async () => {
+        const locked = await initStoragePersistence();
+        triggerHaptic('light');
+        showToast(locked ? 'Android Storage Lock Granted!' : 'Storage active (browser manages persistence).');
+      });
+
+      document.getElementById('btnTestHaptics').addEventListener('click', () => {
+        triggerHaptic('fail');
+        showToast('Triggered OnePlus dual-pulse haptic vibration!');
+      });
+
+      document.getElementById('btnResetSampleData').addEventListener('click', () => {
+        openConfirmModal(
+          'Reload Demo Habits & 90-Day History',
+          'Replace current habits and logs with the pre-populated 90-day demo dataset?',
+          async () => {
+            await seedDemoData();
+            await loadAllDataFromDB();
+            renderAll();
+            triggerHaptic('light');
+            showToast('Demo habits and 90-day history restored!', 'success');
+          }
+        );
+      });
+
+      document.getElementById('btnWipeAllData').addEventListener('click', () => {
+        openConfirmModal(
+          'Wipe All Habits & Logs',
+          'Permanently clear all habits and historical logs from IndexedDB?',
+          async () => {
+            await dbClear('habits');
+            await dbClear('logs');
+            await loadAllDataFromDB();
+            renderAll();
+            triggerHaptic('fail');
+            showToast('All habits and logs wiped.', 'fail');
+          }
+        );
+      });
+    }
+
+    async function initApp() {
+      try {
+        state.db = await openDatabase();
+        await initStoragePersistence();
+
+        const existingHabits = await dbGetAll('habits');
+        const alreadySeeded = await dbGetMeta('sampleSeeded');
+        if (existingHabits.length === 0 && !alreadySeeded) {
+          await seedDemoData();
+        }
+
+        await loadAllDataFromDB();
+        setupEventListeners();
+        renderAll();
+      } catch (err) {
+        showToast(`Initialization error: ${err.message}`, 'fail');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
